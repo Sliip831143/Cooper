@@ -377,6 +377,7 @@
             flex: 1;
             background-color: var(--md-sys-color-surface);
             padding: 24px;
+            padding-bottom: 100px; /* ボタングループの高さ分の余白を確保 */
             overflow-y: auto;
             scroll-behavior: smooth;
         }
@@ -435,6 +436,14 @@
             display: flex;
             gap: 10px;
             margin-top: 30px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--md-sys-color-surface);
+            padding: 16px 24px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
         }
         .btn {
             padding: 12px 24px;
@@ -486,6 +495,41 @@
             font-weight: 500;
             font-size: 28px;
             letter-spacing: 0.5px;
+        }
+        .sns-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sns-field input {
+            flex: 1;
+        }
+        .sns-icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background-color: var(--md-sys-color-surface-variant);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .sns-icon-btn:hover {
+            background-color: var(--md-sys-color-primary-container);
+            transform: scale(1.05);
+        }
+        .sns-icon-btn:active {
+            transform: scale(0.95);
+        }
+        .sns-icon-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--md-sys-color-on-surface-variant);
+        }
+        .sns-icon-btn:hover svg {
+            fill: var(--md-sys-color-on-primary-container);
         }
         .photo-upload {
             position: relative;
@@ -689,6 +733,21 @@
             transform: translateX(-10px);
             transition: all 0.2s ease;
             z-index: 1002;
+        }
+        
+        /* モバイル表示でのボタングループ調整 */
+        @media (max-width: 768px) {
+            .button-group {
+                left: 0;
+                right: 0;
+                padding: 16px;
+                justify-content: space-between;
+            }
+            
+            .button-group .btn {
+                flex: 1;
+                padding: 12px 16px;
+            }
         }
         
         /* モバイル表示でのサブメニュー位置調整 */
@@ -1264,6 +1323,43 @@
         
         // グローバルスコープに関数を公開
         window.deletePerson = deletePerson;
+        
+        function openSNS(platform, value) {
+            if (!value || value.trim() === '') return;
+            
+            let url = '';
+            const cleanValue = value.trim();
+            
+            switch(platform) {
+                case 'twitter':
+                    // @を除去してユーザー名を抽出
+                    const twitterUsername = cleanValue.replace(/^@/, '');
+                    url = `https://twitter.com/${twitterUsername}`;
+                    break;
+                    
+                case 'instagram':
+                    // @を除去してユーザー名を抽出
+                    const instaUsername = cleanValue.replace(/^@/, '');
+                    url = `https://instagram.com/${instaUsername}`;
+                    break;
+                    
+                case 'facebook':
+                    // URLが含まれている場合はそのまま使用
+                    if (cleanValue.includes('facebook.com') || cleanValue.includes('fb.com')) {
+                        url = cleanValue.startsWith('http') ? cleanValue : `https://${cleanValue}`;
+                    } else {
+                        // 名前の場合は検索URLを生成
+                        url = `https://www.facebook.com/search/top?q=${encodeURIComponent(cleanValue)}`;
+                    }
+                    break;
+            }
+            
+            if (url) {
+                window.open(url, '_blank', 'noopener');
+            }
+        }
+        
+        window.openSNS = openSNS;
 
         let currentSortMode = 'default';
         let sortAscending = true;
@@ -1330,6 +1426,12 @@
             isEditing = true;
             
             const detailView = document.getElementById('detailView');
+            
+            // +ボタンを非表示にする
+            const addButton = document.querySelector('.add-button');
+            if (addButton) {
+                addButton.style.display = 'none';
+            }
             
             // モバイルビューの場合はactiveクラスを追加
             if (window.innerWidth <= 768) {
@@ -1450,7 +1552,43 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="sns">SNSアカウント</label>
+                            <label for="twitter">X（Twitter）</label>
+                            <div class="sns-field">
+                                <input type="text" id="twitter" name="twitter" autocomplete="off" value="${person.twitter || ''}" placeholder="@username">
+                                <button type="button" class="sns-icon-btn" onclick="openSNS('twitter', '${person.twitter || ''}')" title="Xで開く">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instagram">Instagram</label>
+                            <div class="sns-field">
+                                <input type="text" id="instagram" name="instagram" autocomplete="off" value="${person.instagram || ''}" placeholder="@username">
+                                <button type="button" class="sns-icon-btn" onclick="openSNS('instagram', '${person.instagram || ''}')" title="Instagramで開く">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1112.324 0 6.162 6.162 0 01-12.324 0zM12 16a4 4 0 110-8 4 4 0 010 8zm4.965-10.405a1.44 1.44 0 112.881.001 1.44 1.44 0 01-2.881-.001z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="facebook">Facebook</label>
+                            <div class="sns-field">
+                                <input type="text" id="facebook" name="facebook" autocomplete="off" value="${person.facebook || ''}" placeholder="名前 または URL">
+                                <button type="button" class="sns-icon-btn" onclick="openSNS('facebook', '${person.facebook || ''}')" title="Facebookで開く">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sns">その他SNS</label>
                             <input type="text" id="sns" name="sns" autocomplete="off" value="${person.sns || ''}" placeholder="@username, https://...">
                         </div>
                         
@@ -1498,6 +1636,9 @@
                 relationship: document.getElementById('relationship').value,
                 birthplace: document.getElementById('birthplace').value,
                 residence: document.getElementById('residence').value,
+                twitter: document.getElementById('twitter').value,
+                instagram: document.getElementById('instagram').value,
+                facebook: document.getElementById('facebook').value,
                 sns: document.getElementById('sns').value,
                 notes: document.getElementById('notes').value,
                 photo: document.getElementById('photoPreview').querySelector('img')?.src || ''
@@ -1532,6 +1673,12 @@
         function showEmptyState() {
             currentPersonId = null;
             const detailView = document.getElementById('detailView');
+            
+            // +ボタンを再表示する
+            const addButton = document.querySelector('.add-button');
+            if (addButton) {
+                addButton.style.display = 'flex';
+            }
             
             // モバイルビューの場合はactiveクラスを削除
             if (window.innerWidth <= 768) {
