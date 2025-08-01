@@ -1,0 +1,50 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "DEPLOY.md",
+      "README.md",
+      "CONTRIBUTING.md",
+      "CHANGELOG.md",
+      "SECURITY.md",
+      "LICENSE",
+      "package.json",
+      "setup.sh",
+      "setup.bat",
+      "**/*.sh",
+      "**/*.bat",
+      ".github/**",
+      ".vscode/**",
+      "docs/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # GitHub Actionsの依存関係を自動更新
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "your-github-username"
+    
+  # npm依存関係を自動更新（package.jsonがある場合）
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "your-github-username"
+    ignore:
+      # Firebase SDKはCDN版を使用しているため除外
+      - dependency-name: "firebase"
+      - dependency-name: "@firebase/*"

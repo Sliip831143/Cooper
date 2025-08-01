@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="application-name" content="Cooper">
+    <meta name="apple-mobile-web-app-title" content="Cooper">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1D9BF0">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bree+Serif&display=swap" rel="stylesheet">
+    <title>Cooper</title>
+    <style>
+        /* Material Design 3 カラーパレット - Twitter Blue Theme */
+        :root {
+            --md-sys-color-primary: #1D9BF0;
+            --md-sys-color-primary-container: #D3E9FC;
+            --md-sys-color-secondary: #536471;
+            --md-sys-color-secondary-container: #E1E8ED;
+            --md-sys-color-tertiary: #0084B4;
+            --md-sys-color-tertiary-container: #C8E6F5;
+            --md-sys-color-surface: #FFFFFF;
+            --md-sys-color-surface-variant: #F7F9FA;
+            --md-sys-color-background: #FFFFFF;
+            --md-sys-color-error: #DC3545;
+            --md-sys-color-error-container: #FFDAD6;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-on-surface: #0F1419;
+            --md-sys-color-on-surface-variant: #536471;
+            --md-sys-color-outline: #CFD9DE;
+            --md-sys-color-outline-variant: #EFF3F4;
+            --md-sys-color-shadow: #000000;
+            --md-sys-color-surface-tint: #1D9BF0;
+            
+            /* エレベーション */
+            --md-sys-elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+            --md-sys-elevation-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+            --md-sys-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+            
+            /* 角丸 */
+            --md-sys-shape-corner-small: 8px;
+            --md-sys-shape-corner-medium: 12px;
+            --md-sys-shape-corner-large: 16px;
+            --md-sys-shape-corner-extra-large: 28px;
+        }
+        
+        /* ダークモード用カラーパレット */
+        [data-theme="dark"] {
+            --md-sys-color-primary: #8DB9F3;
+            --md-sys-color-primary-container: #004A77;
+            --md-sys-color-secondary: #B8C5D6;
+            --md-sys-color-secondary-container: #3E4C59;
+            --md-sys-color-tertiary: #B8C9E8;
+            --md-sys-color-tertiary-container: #243447;
+            --md-sys-color-surface: #1C1B1F;
+            --md-sys-color-surface-variant: #2B2930;
+            --md-sys-color-background: #1C1B1F;
+            --md-sys-color-error: #FFB4AB;
+            --md-sys-color-error-container: #93000A;
+            --md-sys-color-on-primary: #00344F;
+            --md-sys-color-on-secondary: #273141;
+            --md-sys-color-on-surface: #E6E1E5;
+            --md-sys-color-on-surface-variant: #C4C7C5;
+            --md-sys-color-outline: #8E9099;
+            --md-sys-color-outline-variant: #444746;
+            --md-sys-color-shadow: #000000;
+            --md-sys-color-surface-tint: #8DB9F3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-surface);
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            padding: 16px 24px;
+            box-shadow: var(--md-sys-elevation-1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .header h1 {
+            font-family: 'Bree Serif', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-icon:hover {
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+        .btn-icon svg {
+            fill: var(--md-sys-color-on-surface-variant);
+        }
+        
+        /* プロフィール画像ドロップダウン */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            object-fit: cover;
+        }
+        
+        .profile-avatar:hover {
+            opacity: 0.8;
+        }
+        
+        .profile-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background-color: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            box-shadow: var(--md-sys-elevation-2);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+        
+        .profile-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            color: var(--md-sys-color-on-surface);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .profile-menu-item:hover {
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        
+        .profile-menu-item:first-child {
+            border-radius: var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0 0;
+        }
+        
+        .profile-menu-item:last-child {
+            border-radius: 0 0 var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium);
+        }
+        
+        .profile-menu-item svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--md-sys-color-on-surface-variant);
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 360px;
+            background-color: var(--md-sys-color-surface);
+            border-right: none;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--md-sys-elevation-1);
+            z-index: 1;
+        }
+        .search-section {
+            padding: 12px;
+        }
+        
+        .search-container {
+            padding: 0;
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            margin-bottom: 8px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            outline: none;
+            color: var(--md-sys-color-on-surface);
+        }
+        .search-input::placeholder {
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        
+        .sort-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .sort-btn {
+            padding: 8px 16px;
+            background-color: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .sort-btn:hover {
+            background-color: var(--md-sys-color-primary-container);
+        }
+        
+        .sort-btn.active {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border-color: var(--md-sys-color-primary);
+        }
+        
+        .sort-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+        .person-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .person-item {
+            padding: 16px;
+            margin: 8px 12px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .person-item:hover {
+            background-color: var(--md-sys-color-primary-container);
+            box-shadow: var(--md-sys-elevation-1);
+        }
+        .person-item.active {
+            background-color: var(--md-sys-color-secondary-container);
+            box-shadow: var(--md-sys-elevation-2);
+        }
+        .person-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--md-sys-color-primary-container);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: var(--md-sys-elevation-1);
+        }
+        .person-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .person-avatar svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--md-sys-color-primary);
+        }
+        .person-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .person-name {
+            font-weight: 400;
+            font-size: 16px;
+            color: var(--md-sys-color-on-surface);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.5px;
+        }
+        .person-info {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.25px;
+        }
+        .add-button {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: var(--md-sys-elevation-3);
+            transition: all 0.2s ease;
+            z-index: 1000;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .add-button:hover {
+            box-shadow: var(--md-sys-elevation-3), 0 0 0 8px rgba(103, 80, 164, 0.1);
+            transform: scale(1.05);
+        }
+        .add-button:active {
+            transform: scale(0.95);
+        }
+        .detail-view {
+            flex: 1;
+            background-color: var(--md-sys-color-surface);
+            padding: 24px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 24px;
+            fill: var(--md-sys-color-outline-variant);
+            opacity: 0.6;
+        }
+        .empty-state p {
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 400;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            border-width: 2px;
+            padding: 15px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-1);
+        }
+        .btn-primary:hover {
+            box-shadow: var(--md-sys-elevation-2);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .btn-danger {
+            background-color: var(--md-sys-color-error);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-1);
+        }
+        .btn-danger:hover {
+            box-shadow: var(--md-sys-elevation-2);
+        }
+        .btn-secondary {
+            background-color: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface);
+        }
+        .btn-secondary:hover {
+            background-color: var(--md-sys-color-outline-variant);
+        }
+        .detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .detail-header h2 {
+            flex: 1;
+            color: var(--md-sys-color-on-surface);
+            font-weight: 500;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+        }
+        .photo-upload {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+        }
+        .photo-preview {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--md-sys-color-surface-variant);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: var(--md-sys-elevation-1);
+        }
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background-color: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--md-sys-elevation-2);
+            transition: all 0.2s ease;
+        }
+        .photo-upload-btn:hover {
+            transform: scale(1.1);
+            box-shadow: var(--md-sys-elevation-3);
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+            }
+            .detail-view {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 999;
+                background-color: white;
+            }
+            .detail-view.active {
+                display: block;
+            }
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+            .add-button {
+                bottom: 30px;
+                right: 30px;
+            }
+        }
+        
+        /* リップルエフェクト */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple-animation 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--md-sys-color-surface);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--md-sys-color-outline-variant);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--md-sys-color-outline);
+        }
+        
+        /* 設定メニュー */
+        .settings-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background-color: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            box-shadow: var(--md-sys-elevation-2);
+            padding: 8px;
+            min-width: 200px;
+            display: none;
+            z-index: 1001;
+        }
+        
+        .settings-menu.active {
+            display: block;
+        }
+        
+        .settings-item {
+            position: relative;
+            padding: 12px 16px;
+            border-radius: var(--md-sys-shape-corner-small);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            color: var(--md-sys-color-on-surface);
+        }
+        
+        .settings-item:hover {
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        
+        .settings-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .settings-item-content svg {
+            fill: var(--md-sys-color-on-surface);
+        }
+        
+        /* 設定メニューの区切り線 */
+        .settings-divider {
+            height: 1px;
+            background-color: var(--md-sys-color-outline-variant);
+            margin: 8px 0;
+        }
+        
+        /* 削除ボタンのスタイル */
+        .settings-item.delete-all {
+            color: var(--md-sys-color-error);
+        }
+        
+        .settings-item.delete-all .settings-item-content svg {
+            fill: var(--md-sys-color-error);
+        }
+        
+        .settings-item.delete-all:hover {
+            background-color: rgba(179, 38, 30, 0.08);
+        }
+        
+        .settings-item.has-submenu {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .submenu-arrow {
+            fill: var(--md-sys-color-on-surface-variant);
+            transition: transform 0.2s ease;
+        }
+        
+        .settings-item.expanded .submenu-arrow {
+            transform: rotate(90deg);
+        }
+        
+        /* サブメニュー */
+        .submenu {
+            position: absolute;
+            top: 0;
+            left: calc(100% + 8px);
+            background-color: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            box-shadow: var(--md-sys-elevation-2);
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-10px);
+            transition: all 0.2s ease;
+            z-index: 1002;
+        }
+        
+        /* モバイル表示でのサブメニュー位置調整 */
+        @media (max-width: 768px) {
+            .submenu {
+                position: fixed;
+                left: auto;
+                right: 16px;
+                top: auto;
+                max-width: calc(100vw - 32px);
+                transform: none;
+            }
+            
+            .settings-item.has-submenu {
+                position: static;
+            }
+            
+            /* モバイルではサブメニューを下に表示 */
+            .settings-item.expanded + .submenu,
+            .settings-item.expanded .submenu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                margin-top: 4px;
+            }
+        }
+        
+        .submenu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+        
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .submenu-item:first-child {
+            border-radius: var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0 0;
+        }
+        
+        .submenu-item:last-child {
+            border-radius: 0 0 var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium);
+        }
+        
+        .submenu-item:hover {
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        
+        /* テーマ設定 */
+        .settings-section {
+            padding: 8px 0;
+        }
+        
+        .settings-label {
+            font-size: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 8px;
+            padding: 0 16px;
+            font-weight: 500;
+        }
+        
+        .theme-options {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        /* ライトモードでの色指定 */
+        [data-theme="light"] .theme-option {
+            color: #0F1419;
+        }
+        
+        [data-theme="light"] .theme-option svg {
+            fill: #0F1419;
+        }
+        
+        /* ダークモードでの色指定 */
+        [data-theme="dark"] .theme-option {
+            color: #E6E1E5;
+        }
+        
+        [data-theme="dark"] .theme-option svg {
+            fill: #E6E1E5;
+        }
+        
+        .theme-option.active {
+            background-color: var(--md-sys-color-primary-container);
+        }
+        
+        /* トグルスイッチ（旧設定用、削除予定） */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: var(--md-sys-color-outline);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background-color: var(--md-sys-color-primary);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+        
+        .settings-container {
+            position: relative;
+        }
+        
+        /* フォームカード */
+        .form-card {
+            background-color: var(--md-sys-color-surface-variant);
+            padding: 24px;
+            border-radius: var(--md-sys-shape-corner-large);
+            margin-bottom: 24px;
+            box-shadow: var(--md-sys-elevation-1);
+        }
+        
+        .form-card h3 {
+            font-size: 18px;
+            font-weight: 400;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-on-surface);
+            letter-spacing: 0.5px;
+        }
+        
+        /* ダークモードでの詳細画面の調整 */
+        [data-theme="dark"] .detail-view {
+            background-color: var(--md-sys-color-background);
+        }
+        
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group textarea,
+        [data-theme="dark"] .form-group select {
+            background-color: var(--md-sys-color-surface);
+            border-color: var(--md-sys-color-outline-variant);
+        }
+        
+        [data-theme="dark"] .form-card {
+            background-color: var(--md-sys-color-surface);
+        }
+    </style>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>Cooper</h1>
+            <div class="header-actions">
+                <button class="btn-icon" id="signInBtn" onclick="handleSignIn()" title="サインイン">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                </button>
+                <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                    <img src="" alt="Profile" class="profile-avatar" id="profileAvatar" onclick="toggleProfileMenu()">
+                    <div class="profile-menu" id="profileMenu">
+                        <div class="profile-menu-item" onclick="handleSignOut()">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                            </svg>
+                            <span>サインアウト</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="handleSwitchAccount()">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                            </svg>
+                            <span>アカウント切り替え</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-container">
+                    <button class="btn-icon" onclick="toggleSettingsMenu()" title="設定">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                        </svg>
+                    </button>
+                    <div class="settings-menu" id="settingsMenu">
+                        <div class="settings-item has-submenu" onclick="toggleThemeSubmenu(event)">
+                            <div class="settings-item-content">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                                </svg>
+                                <span>テーマ</span>
+                            </div>
+                            <svg class="submenu-arrow" viewBox="0 0 24 24" width="20" height="20">
+                                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                            </svg>
+                            <div class="submenu" id="themeSubmenu">
+                                <button class="submenu-item theme-option" data-theme="light" onclick="setTheme('light'); event.stopPropagation();">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+                                    </svg>
+                                    <span>ライト</span>
+                                </button>
+                                <button class="submenu-item theme-option" data-theme="dark" onclick="setTheme('dark'); event.stopPropagation();">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M9 2c-1.05 0-2.05.16-3 .46 4.06 1.27 7 5.06 7 9.54 0 4.48-2.94 8.27-7 9.54.95.3 1.95.46 3 .46 5.52 0 10-4.48 10-10S14.52 2 9 2z"/>
+                                    </svg>
+                                    <span>ダーク</span>
+                                </button>
+                                <button class="submenu-item theme-option" data-theme="system" onclick="setTheme('system'); event.stopPropagation();">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+                                    </svg>
+                                    <span>システム</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-item has-submenu" onclick="toggleDataSubmenu(event)">
+                            <div class="settings-item-content">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path d="M4 6h18V4H4c-1.1 0-2 .9-2 2v11H0v3h14v-3H4V6zm19 2h-6c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1zM22 18h-4v-7h4v7z"/>
+                                </svg>
+                                <span>データ</span>
+                            </div>
+                            <svg class="submenu-arrow" viewBox="0 0 24 24" width="20" height="20">
+                                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                            </svg>
+                            <div class="submenu" id="dataSubmenu">
+                                <button class="submenu-item theme-option" onclick="exportData(); closeAllMenus();">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                                    </svg>
+                                    <span>エクスポート</span>
+                                </button>
+                                <button class="submenu-item theme-option" onclick="importData(); closeAllMenus();">
+                                    <svg viewBox="0 0 24 24" width="20" height="20">
+                                        <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                                    </svg>
+                                    <span>インポート</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-divider"></div>
+                        <div class="settings-item delete-all" onclick="deleteAllPersons()">
+                            <div class="settings-item-content">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                </svg>
+                                <span>すべて削除</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="search-section">
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="searchInput" name="search" autocomplete="off" placeholder="名前、場所、職業などで検索...">
+                    </div>
+                    <div class="sort-container">
+                        <button class="sort-btn" id="sortDefault" onclick="setSortMode('default')">
+                            デフォルト
+                        </button>
+                        <button class="sort-btn" id="sortLastMet" onclick="setSortMode('lastMet')">
+                            最終日
+                            <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+                        </button>
+                        <button class="sort-btn" id="sortPlace" onclick="setSortMode('place')">
+                            場所
+                            <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="person-list" id="personList"></div>
+            </div>
+            <div class="detail-view" id="detailView">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    <p>人物を選択するか、新規追加してください</p>
+                </div>
+            </div>
+        </div>
+        <button class="add-button" id="addButton">+</button>
+    </div>
+
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase設定 -->
+    <script src="./js/firebase-config.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/firestore-db.js"></script>
+    
+    <script>
+
+        let persons = [];
+        let currentPersonId = null;
+        let isEditing = false;
+
+        // Firebase認証の初期化
+        console.log('Firebase初期化開始');
+        
+        // Firebase読み込み完了を待つ
+        setTimeout(async () => {
+            
+            if (typeof initializeAuth === 'function') {
+                console.log('initializeAuth関数が利用可能');
+                initializeAuth(async (user) => {
+                    console.log('認証状態変更:', user ? user.displayName : '未ログイン');
+                    updateUIForAuthState(user);
+                    
+                    if (user) {
+                        // ユーザーがサインインしている場合
+                        await loadUserData();
+                    } else {
+                        // ユーザーがサインアウトしている場合
+                        persons = [];
+                        renderPersonList();
+                        showEmptyState();
+                    }
+                });
+            } else {
+                console.error('initializeAuth関数が見つかりません');
+                // 緊急時：初期状態のUIを表示
+                updateUIForAuthState(null);
+            }
+        }, 1000);
+        
+        // 初期UI状態を設定（Firebase読み込み前）
+        updateUIForAuthState(null);
+
+        // サインイン処理
+        window.handleSignIn = async function() {
+            console.log('handleSignIn呼び出し');
+            try {
+                await signInWithGoogle();
+            } catch (error) {
+                console.error('サインインエラー:', error);
+                alert('サインインに失敗しました');
+            }
+        }
+
+        // サインアウト処理
+        window.handleSignOut = async function() {
+            try {
+                await signOutUser();
+                persons = [];
+                renderPersonList();
+                showEmptyState();
+                // プロフィールメニューを閉じる
+                const profileMenu = document.getElementById('profileMenu');
+                if (profileMenu) {
+                    profileMenu.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('サインアウトエラー:', error);
+                alert('サインアウトに失敗しました');
+            }
+        }
+        
+        // プロフィールメニューの表示/非表示を切り替え
+        window.toggleProfileMenu = function() {
+            const profileMenu = document.getElementById('profileMenu');
+            profileMenu.classList.toggle('active');
+        }
+        
+        // アカウント切り替え処理
+        window.handleSwitchAccount = async function() {
+            try {
+                // プロフィールメニューを閉じる
+                const profileMenu = document.getElementById('profileMenu');
+                if (profileMenu) {
+                    profileMenu.classList.remove('active');
+                }
+                
+                // 現在のユーザー情報を保存
+                const currentUserEmail = getCurrentUser()?.email;
+                
+                // 新しいアカウントでサインインを試みる
+                const newUser = await signInWithGoogle();
+                
+                // 新しいユーザーが選択され、かつ現在のユーザーと異なる場合のみデータをクリア
+                if (newUser && newUser.email !== currentUserEmail) {
+                    // 異なるアカウントでログインした場合、ローカルデータをクリア
+                    persons = [];
+                    renderPersonList();
+                    showEmptyState();
+                }
+            } catch (error) {
+                // ユーザーがキャンセルした場合やエラーが発生した場合
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    console.error('アカウント切り替えエラー:', error);
+                    alert('アカウントの切り替えに失敗しました');
+                }
+            }
+        }
+
+        // 認証状態に応じたUIの更新
+        function updateUIForAuthState(user) {
+            const signInBtn = document.getElementById('signInBtn');
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileAvatar = document.getElementById('profileAvatar');
+            
+            if (user) {
+                // サインイン済み
+                signInBtn.style.display = 'none';
+                profileDropdown.style.display = 'block';
+                
+                // デバッグ用：ユーザー情報をログ出力
+                console.log('User info:', {
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    uid: user.uid
+                });
+                
+                // プロフィール画像を設定
+                if (user.photoURL) {
+                    // GoogleのプロフィールURLを処理
+                    let photoURL = user.photoURL;
+                    
+                    // 別のサイズパラメータを試す（40x40に変更）
+                    if (photoURL.includes('=s96-c')) {
+                        photoURL = photoURL.replace('=s96-c', '=s40');
+                    }
+                    
+                    console.log('Setting photoURL:', photoURL);
+                    
+                    // 少し遅延させてから画像を設定（レート制限回避）
+                    setTimeout(() => {
+                        profileAvatar.src = photoURL;
+                    }, 100);
+                    
+                    // エラー時のフォールバック
+                    profileAvatar.onerror = function() {
+                        console.log('Profile image failed to load, using fallback');
+                        const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+                        const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#4285f4"/><text x="20" y="25" font-family="Arial" font-size="18" fill="white" text-anchor="middle">${initial}</text></svg>`;
+                        profileAvatar.src = `data:image/svg+xml,${encodeURIComponent(svgString)}`;
+                        
+                        // エラーハンドラーを削除して無限ループを防ぐ
+                        profileAvatar.onerror = null;
+                    };
+                } else {
+                    console.log('No photoURL found, using initial avatar');
+                    // デフォルトアバター（イニシャル）を設定
+                    const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+                    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#4285f4"/><text x="20" y="25" font-family="Arial" font-size="18" fill="white" text-anchor="middle">${initial}</text></svg>`;
+                    profileAvatar.src = `data:image/svg+xml,${encodeURIComponent(svgString)}`;
+                }
+            } else {
+                // 未サインイン
+                signInBtn.style.display = 'block';
+                profileDropdown.style.display = 'none';
+            }
+        }
+
+        // ユーザーデータの読み込み
+        async function loadUserData() {
+            const user = getCurrentUser();
+            if (!user) return;
+            
+            try {
+                // Firestoreからデータを取得
+                persons = await getAllContacts(user.uid);
+                renderPersonList();
+                
+                // 初回ログイン時にローカルストレージからデータを移行
+                const localData = localStorage.getItem('persons');
+                if (localData && persons.length === 0) {
+                    if (confirm('ローカルに保存されているデータをアカウントに移行しますか？')) {
+                        // 古い形式のデータを移行
+                        const oldPersons = JSON.parse(localData);
+                        localStorage.setItem('contactsData', JSON.stringify(oldPersons));
+                        await migrateFromLocalStorage(user.uid);
+                        persons = await getAllContacts(user.uid);
+                        renderPersonList();
+                        localStorage.removeItem('persons');
+                    }
+                }
+            } catch (error) {
+                console.error('データ読み込みエラー:', error);
+                alert('データの読み込みに失敗しました');
+            }
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+
+        async function savePerson(person) {
+            const user = getCurrentUser();
+            if (!user) {
+                alert('保存するにはサインインしてください');
+                return;
+            }
+            
+            try {
+                if (!person.id) {
+                    person.id = generateId();
+                }
+                
+                await saveContact(user.uid, person);
+                
+                // ローカルの配列を更新
+                const index = persons.findIndex(p => p.id === person.id);
+                if (index !== -1) {
+                    persons[index] = person;
+                } else {
+                    persons.push(person);
+                }
+                
+                renderPersonList();
+                return person.id;
+            } catch (error) {
+                console.error('保存エラー:', error);
+                alert('データの保存に失敗しました');
+                throw error;
+            }
+        }
+
+        async function deletePerson(id) {
+            const user = getCurrentUser();
+            if (!user) {
+                alert('削除するにはサインインしてください');
+                return;
+            }
+            
+            if (confirm('この人物の情報を削除しますか？')) {
+                try {
+                    await deleteContact(user.uid, id);
+                    persons = persons.filter(p => p.id !== id);
+                    renderPersonList();
+                    showEmptyState();
+                } catch (error) {
+                    console.error('削除エラー:', error);
+                    alert('データの削除に失敗しました');
+                }
+            }
+        }
+        
+        // グローバルスコープに関数を公開
+        window.deletePerson = deletePerson;
+
+        let currentSortMode = 'default';
+        let sortAscending = true;
+
+        function renderPersonList() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            let filteredPersons = persons.filter(person => {
+                const searchText = `${person.name || ''} ${person.features || ''} ${person.hobbies || ''} ${person.notes || ''} ${person.meetingPlace || ''} ${person.birthplace || ''} ${person.residence || ''} ${person.birthday || ''} ${person.occupation || ''} ${person.sns || ''}`.toLowerCase();
+                return searchText.includes(searchQuery);
+            });
+
+            // ソート処理
+            filteredPersons = sortPersons(filteredPersons);
+
+            const personList = document.getElementById('personList');
+            personList.innerHTML = '';
+
+            filteredPersons.forEach(person => {
+                const item = document.createElement('div');
+                item.className = 'person-item';
+                if (person.id === currentPersonId) {
+                    item.classList.add('active');
+                }
+                // 最後に会った日の表示
+                let lastMetDisplay = '';
+                if (person.lastMet) {
+                    lastMetDisplay = person.lastMet;
+                } else if (person.firstMet) {
+                    lastMetDisplay = person.firstMet;
+                }
+                
+                // 出会った場所の表示
+                const meetingPlaceDisplay = person.meetingPlace || '';
+                
+                // 表示する情報を組み立て
+                let infoItems = [];
+                if (lastMetDisplay) infoItems.push(lastMetDisplay);
+                if (meetingPlaceDisplay) infoItems.push(meetingPlaceDisplay);
+                const infoDisplay = infoItems.join(' | ');
+                
+                const avatarContent = person.photo 
+                    ? `<img src="${person.photo}" alt="${person.name || '写真'}">` 
+                    : '<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+                
+                item.innerHTML = `
+                    <div class="person-avatar">${avatarContent}</div>
+                    <div class="person-details">
+                        <div class="person-name">${person.name || '名前未設定'}</div>
+                        <div class="person-info">${infoDisplay}</div>
+                    </div>
+                `;
+                item.addEventListener('click', () => showPersonDetail(person.id));
+                item.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    showPersonDetail(person.id);
+                });
+                personList.appendChild(item);
+            });
+        }
+
+        function showPersonDetail(id) {
+            const person = persons.find(p => p.id === id) || {};
+            currentPersonId = id;
+            isEditing = true;
+            
+            const detailView = document.getElementById('detailView');
+            
+            // モバイルビューの場合はactiveクラスを追加
+            if (window.innerWidth <= 768) {
+                detailView.classList.add('active');
+            }
+            detailView.innerHTML = `
+                <div class="detail-header">
+                    ${window.innerWidth <= 768 ? '<button class="btn-icon" onclick="showEmptyState()" style="margin-right: 15px;"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>' : ''}
+                    <h2>${person.name || '新規人物'}</h2>
+                </div>
+                <form id="personForm">
+                    <div class="form-card">
+                        <div class="photo-upload">
+                            <div class="photo-preview" id="photoPreview">
+                                ${person.photo ? `<img src="${person.photo}" alt="写真">` : '<svg viewBox="0 0 24 24" fill="#ccc" width="80" height="80"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'}
+                            </div>
+                            <button type="button" class="photo-upload-btn" onclick="document.getElementById('photoInput').click()">
+                                <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                                </svg>
+                            </button>
+                            <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+                        </div>
+                    </div>
+                    
+                    <div class="form-card">
+                        <h3>基本情報</h3>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="name">名前</label>
+                                <input type="text" id="name" name="name" autocomplete="name" value="${person.name || ''}" placeholder="山田太郎">
+                            </div>
+                            <div class="form-group">
+                                <label for="age">年齢</label>
+                                <input type="text" id="age" name="age" list="ageList" autocomplete="off" 
+                                       value="${person.age || ''}" placeholder="25">
+                                <datalist id="ageList">
+                                    <option value="10代">10代</option>
+                                    <option value="20代">20代</option>
+                                    <option value="30代">30代</option>
+                                    <option value="40代">40代</option>
+                                    <option value="50代">50代</option>
+                                    <option value="60代">60代</option>
+                                    <option value="70代">70代</option>
+                                    <option value="80代">80代</option>
+                                </datalist>
+                            </div>
+                        </div>
+                    
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="birthday">誕生日</label>
+                                <input type="text" id="birthday" name="birthday" autocomplete="off" 
+                                       value="${person.birthday || ''}" placeholder="1月1日 または 1990/1/1">
+                            </div>
+                            <div class="form-group">
+                                <label for="relationship">関係性</label>
+                                <select id="relationship" name="relationship" autocomplete="off">
+                                    <option value="">選択してください</option>
+                                    <option value="友人" ${person.relationship === '友人' ? 'selected' : ''}>友人</option>
+                                    <option value="同僚" ${person.relationship === '同僚' ? 'selected' : ''}>同僚</option>
+                                    <option value="知人" ${person.relationship === '知人' ? 'selected' : ''}>知人</option>
+                                    <option value="家族" ${person.relationship === '家族' ? 'selected' : ''}>家族</option>
+                                    <option value="恋人" ${person.relationship === '恋人' ? 'selected' : ''}>恋人</option>
+                                    <option value="その他" ${person.relationship === 'その他' ? 'selected' : ''}>その他</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-card">
+                        <h3>出会いと交流</h3>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="meetingPlace">出会った場所</label>
+                                <input type="text" id="meetingPlace" name="meetingPlace" autocomplete="off" value="${person.meetingPlace || ''}" placeholder="東京駅">
+                            </div>
+                            <div class="form-group">
+                                <label for="firstMet">初めて会った日</label>
+                                <input type="date" id="firstMet" name="firstMet" autocomplete="off" value="${person.firstMet || ''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastMet">最後に会った日</label>
+                            <input type="date" id="lastMet" name="lastMet" autocomplete="off" value="${person.lastMet || ''}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-card">
+                        <h3>特徴と趣味</h3>
+                        <div class="form-group">
+                            <label for="features">顔の特徴</label>
+                            <textarea id="features" name="features" autocomplete="off" placeholder="メガネをかけている、髪は黒のショートカット...">${person.features || ''}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="hobbies">趣味・興味</label>
+                            <textarea id="hobbies" name="hobbies" autocomplete="off" placeholder="読書、映画鑑賞、料理...">${person.hobbies || ''}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-card">
+                        <h3>詳細情報</h3>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="occupation">職業</label>
+                                <input type="text" id="occupation" name="occupation" autocomplete="off" value="${person.occupation || ''}" placeholder="エンジニア">
+                            </div>
+                            <div class="form-group">
+                                <label for="birthplace">出身地</label>
+                                <input type="text" id="birthplace" name="birthplace" autocomplete="off" value="${person.birthplace || ''}" placeholder="東京都">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="residence">在住地</label>
+                            <input type="text" id="residence" name="residence" autocomplete="off" value="${person.residence || ''}" placeholder="神奈川県横浜市">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sns">SNSアカウント</label>
+                            <input type="text" id="sns" name="sns" autocomplete="off" value="${person.sns || ''}" placeholder="@username, https://...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="notes">メモ</label>
+                            <textarea id="notes" name="notes" autocomplete="off" placeholder="その他の情報...">${person.notes || ''}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        ${person.id ? `<button type="button" class="btn btn-danger" onclick="deletePerson('${person.id}')">削除</button>` : ''}
+                        <button type="button" class="btn btn-secondary" onclick="showEmptyState()">キャンセル</button>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('personForm').onsubmit = handleSubmit;
+            
+            // グローバルスコープに関数を公開
+            window.deletePerson = deletePerson;
+            renderPersonList();
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const user = getCurrentUser();
+            if (!user) {
+                alert('保存するにはサインインしてください');
+                return;
+            }
+            
+            const personData = {
+                id: currentPersonId,
+                name: document.getElementById('name').value,
+                age: document.getElementById('age').value,
+                birthday: document.getElementById('birthday').value,
+                meetingPlace: document.getElementById('meetingPlace').value,
+                firstMet: document.getElementById('firstMet').value,
+                lastMet: document.getElementById('lastMet').value,
+                features: document.getElementById('features').value,
+                hobbies: document.getElementById('hobbies').value,
+                occupation: document.getElementById('occupation').value,
+                relationship: document.getElementById('relationship').value,
+                birthplace: document.getElementById('birthplace').value,
+                residence: document.getElementById('residence').value,
+                sns: document.getElementById('sns').value,
+                notes: document.getElementById('notes').value,
+                photo: document.getElementById('photoPreview').querySelector('img')?.src || ''
+            };
+            
+            try {
+                const savedId = await savePerson(personData);
+                
+                // モバイルビューの場合は詳細画面を非表示にして一覧に戻る
+                if (window.innerWidth <= 768) {
+                    showEmptyState();
+                } else {
+                    // PCビューの場合は保存した人物の詳細を表示
+                    showPersonDetail(savedId);
+                }
+            } catch (error) {
+                // エラーハンドリングは savePerson 内で実行済み
+            }
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('photoPreview').innerHTML = `<img src="${e.target.result}" alt="写真">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showEmptyState() {
+            currentPersonId = null;
+            const detailView = document.getElementById('detailView');
+            
+            // モバイルビューの場合はactiveクラスを削除
+            if (window.innerWidth <= 768) {
+                detailView.classList.remove('active');
+            }
+            
+            detailView.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    <p>人物を選択するか、新規追加してください</p>
+                </div>
+            `;
+            renderPersonList();
+        }
+
+        const addButton = document.getElementById('addButton');
+        
+        // シンプルなクリックイベントのみを使用
+        addButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('Add button clicked');
+            
+            // サインインチェック
+            const user = getCurrentUser();
+            if (!user) {
+                // カスタムダイアログを表示
+                if (confirm('追加するにはサインインしてください。\nサインインしますか？')) {
+                    handleSignIn();
+                }
+                return;
+            }
+            
+            currentPersonId = null;
+            showPersonDetail(null);
+        });
+
+        document.getElementById('searchInput').addEventListener('input', renderPersonList);
+
+        // エクスポート機能
+        function exportData() {
+            const user = getCurrentUser();
+            if (!user || persons.length === 0) {
+                alert('エクスポートするデータがありません');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(persons, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `persons_backup_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+        
+        window.exportData = exportData;
+
+        // インポート機能
+        function importData() {
+            const user = getCurrentUser();
+            if (!user) {
+                alert('インポートするにはサインインしてください');
+                return;
+            }
+            
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            if (Array.isArray(importedData)) {
+                                if (confirm('インポートすると現在のデータに追加されます。続行しますか？')) {
+                                    let successCount = 0;
+                                    for (const person of importedData) {
+                                        try {
+                                            // 新しいIDを生成して保存
+                                            person.id = generateId();
+                                            await saveContact(user.uid, person);
+                                            successCount++;
+                                        } catch (error) {
+                                            console.error('インポートエラー:', error);
+                                        }
+                                    }
+                                    
+                                    // データを再読み込み
+                                    persons = await getAllContacts(user.uid);
+                                    renderPersonList();
+                                    showEmptyState();
+                                    alert(`${successCount}件のデータをインポートしました`);
+                                }
+                            } else {
+                                alert('無効なファイル形式です');
+                            }
+                        } catch (error) {
+                            alert('ファイルの読み込みに失敗しました');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            
+            input.click();
+        }
+        
+        window.importData = importData;
+
+        // 年齢入力の検証
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.id === 'age') {
+                const value = e.target.value;
+                
+                // 「代」で終わる場合は許可（10代、20代など）
+                if (value.match(/^\d{1,2}代$/)) {
+                    return;
+                }
+                
+                // それ以外は数字のみを許可
+                const numericValue = value.replace(/[^0-9]/g, '');
+                if (value !== numericValue) {
+                    e.target.value = numericValue;
+                }
+                
+                // 3桁を超える場合は3桁に制限
+                if (e.target.value.length > 3) {
+                    e.target.value = e.target.value.slice(0, 3);
+                }
+            }
+            
+            // 誕生日のフォーマット補助
+            if (e.target && e.target.id === 'birthday') {
+                const value = e.target.value;
+                
+                // 複数の形式をサポート
+                // 例: 1/1, 01/01, 1月1日, 1990/1/1, 1990年1月1日
+                // 入力をそのまま保持（ユーザーが好きな形式で入力できるように）
+            }
+        });
+
+        // リップルエフェクトの実装
+        function createRipple(event) {
+            const button = event.currentTarget;
+            if (!button || typeof button.getBoundingClientRect !== 'function') {
+                return; // ボタンが正しく取得できない場合は何もしない
+            }
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+        
+        // リップルエフェクトを適用
+        document.addEventListener('click', function(e) {
+            const button = e.target.closest('.btn') || e.target.closest('.add-button') || e.target.closest('.btn-icon');
+            if (button) {
+                // イベントオブジェクトを修正して、currentTargetを正しく設定
+                const modifiedEvent = {
+                    currentTarget: button,
+                    clientX: e.clientX,
+                    clientY: e.clientY
+                };
+                createRipple(modifiedEvent);
+            }
+        });
+        
+        // テーマ管理
+        let currentThemeMode = 'light'; // light, dark, system
+        let systemThemeListener = null;
+        
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+        }
+        
+        function updateThemeButtons() {
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentThemeMode);
+            });
+        }
+        
+        function setTheme(mode) {
+            currentThemeMode = mode;
+            localStorage.setItem('themeMode', mode);
+            
+            // システムテーマリスナーをクリーンアップ
+            if (systemThemeListener) {
+                systemThemeListener.removeEventListener('change', handleSystemThemeChange);
+            }
+            
+            if (mode === 'system') {
+                // システムテーマを適用
+                applyTheme(getSystemTheme());
+                
+                // システムテーマの変更を監視
+                systemThemeListener = window.matchMedia('(prefers-color-scheme: dark)');
+                systemThemeListener.addEventListener('change', handleSystemThemeChange);
+            } else {
+                // 指定されたテーマを適用
+                applyTheme(mode);
+            }
+            
+            updateThemeButtons();
+            
+            // テーマ選択後、メニューを閉じる
+            const settingsMenu = document.getElementById('settingsMenu');
+            const themeSubmenu = document.getElementById('themeSubmenu');
+            const themeItem = document.querySelector('.settings-item.has-submenu');
+            
+            if (settingsMenu) {
+                settingsMenu.classList.remove('active');
+            }
+            if (themeSubmenu) {
+                themeSubmenu.classList.remove('active');
+            }
+            if (themeItem) {
+                themeItem.classList.remove('expanded');
+            }
+        }
+        
+        function handleSystemThemeChange(e) {
+            if (currentThemeMode === 'system') {
+                applyTheme(e.matches ? 'dark' : 'light');
+            }
+        }
+        
+        function initTheme() {
+            // 保存されたテーマモードを読み込む（デフォルトはsystem）
+            currentThemeMode = localStorage.getItem('themeMode') || 'system';
+            setTheme(currentThemeMode);
+        }
+        
+        function toggleSettingsMenu() {
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('active');
+        }
+        
+        
+        // テーマサブメニューの表示/非表示を切り替え
+        function toggleThemeSubmenu(event) {
+            event.stopPropagation();
+            const themeItem = event.currentTarget;
+            const submenu = document.getElementById('themeSubmenu');
+            
+            // 他のサブメニューを閉じる
+            const dataSubmenu = document.getElementById('dataSubmenu');
+            const dataItem = dataSubmenu?.closest('.settings-item');
+            if (dataSubmenu && dataSubmenu.classList.contains('active')) {
+                dataSubmenu.classList.remove('active');
+                if (dataItem) {
+                    dataItem.classList.remove('expanded');
+                }
+            }
+            
+            themeItem.classList.toggle('expanded');
+            submenu.classList.toggle('active');
+            
+            // モバイル表示の場合、サブメニューの位置を調整
+            if (window.innerWidth <= 768 && submenu.classList.contains('active')) {
+                const rect = themeItem.getBoundingClientRect();
+                const submenuRect = submenu.getBoundingClientRect();
+                
+                // 画面の右端からはみ出る場合は位置を調整
+                if (rect.right + submenuRect.width > window.innerWidth) {
+                    submenu.style.left = 'auto';
+                    submenu.style.right = '0';
+                }
+            }
+        }
+        
+        // データサブメニューの表示/非表示を切り替え
+        function toggleDataSubmenu(event) {
+            event.stopPropagation();
+            const dataItem = event.currentTarget;
+            const submenu = document.getElementById('dataSubmenu');
+            
+            // 他のサブメニューを閉じる
+            const themeSubmenu = document.getElementById('themeSubmenu');
+            const themeItem = themeSubmenu?.closest('.settings-item');
+            if (themeSubmenu && themeSubmenu.classList.contains('active')) {
+                themeSubmenu.classList.remove('active');
+                if (themeItem) {
+                    themeItem.classList.remove('expanded');
+                }
+            }
+            
+            dataItem.classList.toggle('expanded');
+            submenu.classList.toggle('active');
+            
+            // モバイル表示の場合、サブメニューの位置を調整
+            if (window.innerWidth <= 768 && submenu.classList.contains('active')) {
+                const rect = dataItem.getBoundingClientRect();
+                const submenuRect = submenu.getBoundingClientRect();
+                
+                // 画面の右端からはみ出る場合は位置を調整
+                if (rect.right + submenuRect.width > window.innerWidth) {
+                    submenu.style.left = 'auto';
+                    submenu.style.right = '0';
+                }
+            }
+        }
+        
+        // すべてのメニューを閉じる
+        function closeAllMenus() {
+            // 設定メニュー
+            const settingsMenu = document.getElementById('settingsMenu');
+            if (settingsMenu) {
+                settingsMenu.classList.remove('active');
+            }
+            
+            // サブメニュー
+            const themeSubmenu = document.getElementById('themeSubmenu');
+            const dataSubmenu = document.getElementById('dataSubmenu');
+            if (themeSubmenu) {
+                themeSubmenu.classList.remove('active');
+            }
+            if (dataSubmenu) {
+                dataSubmenu.classList.remove('active');
+            }
+            
+            // 展開状態をリセット
+            document.querySelectorAll('.settings-item.expanded').forEach(item => {
+                item.classList.remove('expanded');
+            });
+        }
+        
+        // メニューの外側をクリックしたら閉じる
+        document.addEventListener('click', function(e) {
+            // 設定メニュー
+            const settingsContainer = e.target.closest('.settings-container');
+            const settingsMenu = document.getElementById('settingsMenu');
+            const themeSubmenu = document.getElementById('themeSubmenu');
+            const dataSubmenu = document.getElementById('dataSubmenu');
+            
+            if (!settingsContainer && settingsMenu.classList.contains('active')) {
+                settingsMenu.classList.remove('active');
+                // サブメニューも閉じる
+                if (themeSubmenu) {
+                    themeSubmenu.classList.remove('active');
+                }
+                if (dataSubmenu) {
+                    dataSubmenu.classList.remove('active');
+                }
+                // 展開状態をリセット
+                document.querySelectorAll('.settings-item.expanded').forEach(item => {
+                    item.classList.remove('expanded');
+                });
+            }
+            
+            
+            // プロフィールメニュー
+            const profileDropdown = e.target.closest('.profile-dropdown');
+            const profileMenu = document.getElementById('profileMenu');
+            
+            if (!profileDropdown && profileMenu && profileMenu.classList.contains('active')) {
+                profileMenu.classList.remove('active');
+            }
+        });
+        
+        // ソート関数
+        function sortPersons(persons) {
+            return persons.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch (currentSortMode) {
+                    case 'lastMet':
+                        aValue = a.lastMet || a.firstMet || '';
+                        bValue = b.lastMet || b.firstMet || '';
+                        break;
+                    case 'place':
+                        aValue = (a.meetingPlace || '').toLowerCase();
+                        bValue = (b.meetingPlace || '').toLowerCase();
+                        break;
+                    default:
+                        // デフォルトは追加順（IDベース）
+                        return 0;
+                }
+                
+                if (aValue === bValue) return 0;
+                
+                // 空の値は最後に配置
+                if (!aValue) return 1;
+                if (!bValue) return -1;
+                
+                const comparison = aValue.localeCompare(bValue);
+                return sortAscending ? comparison : -comparison;
+            });
+        }
+        
+        function setSortMode(mode) {
+            // 同じモードをクリックした場合は昇順/降順を切り替え
+            if (currentSortMode === mode) {
+                sortAscending = !sortAscending;
+            } else {
+                currentSortMode = mode;
+                sortAscending = true;
+            }
+            
+            // ボタンの見た目を更新
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (mode !== 'default') {
+                const activeBtn = document.getElementById(`sort${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
+                activeBtn.classList.add('active');
+                
+                // 矢印の向きを更新
+                const arrow = activeBtn.querySelector('svg path');
+                if (arrow) {
+                    arrow.setAttribute('d', sortAscending ? 'M7 14l5-5 5 5z' : 'M7 10l5 5 5-5z');
+                }
+            } else {
+                document.getElementById('sortDefault').classList.add('active');
+            }
+            
+            renderPersonList();
+        }
+        
+        // すべての人物を削除
+        async function deleteAllPersons() {
+            if (!confirm('すべての人物を削除します。宜しいですか？')) {
+                return;
+            }
+            
+            try {
+                const user = getCurrentUser();
+                if (user) {
+                    // ログイン中はFirestoreから削除
+                    await deleteAllContacts(user.uid);
+                } else {
+                    // ログアウト中はlocalStorageから削除
+                    localStorage.removeItem('persons');
+                }
+                
+                // 画面を更新
+                persons = [];
+                renderPersonList();
+                showEmptyState();
+                
+                // 設定メニューを閉じる
+                const settingsMenu = document.getElementById('settingsMenu');
+                if (settingsMenu) {
+                    settingsMenu.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('削除エラー:', error);
+                alert('削除に失敗しました');
+            }
+        }
+        
+        // グローバルスコープに必要な関数を公開
+        window.showPersonDetail = showPersonDetail;
+        window.showEmptyState = showEmptyState;
+        window.handlePhotoUpload = handlePhotoUpload;
+        window.setTheme = setTheme;
+        window.toggleSettingsMenu = toggleSettingsMenu;
+        window.toggleThemeSubmenu = toggleThemeSubmenu;
+        window.toggleDataSubmenu = toggleDataSubmenu;
+        window.closeAllMenus = closeAllMenus;
+        window.setSortMode = setSortMode;
+        window.deleteAllPersons = deleteAllPersons;
+        
+        // 初期化
+        initTheme();
+        document.getElementById('sortDefault').classList.add('active');
+        
+        // Service Workerの登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered:', registration))
+                    .catch(error => console.log('SW registration failed:', error));
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cooper Icon Generator</title>
+</head>
+<body>
+    <h2>Cooper App Icon Generator</h2>
+    <p>このページを開いて、各サイズのアイコンを右クリック→「画像を保存」してください。</p>
+    
+    <div id="icons"></div>
+    
+    <script>
+        const sizes = [16, 32, 72, 96, 128, 144, 152, 180, 192, 384, 512];
+        const container = document.getElementById('icons');
+        
+        sizes.forEach(size => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // 青い円形背景
+            ctx.fillStyle = '#1E88E5';
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // COOPERテキスト
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.15}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('COOPER', size / 2, size / 2);
+            
+            // 画像として表示
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL();
+            img.style.margin = '10px';
+            img.style.border = '1px solid #ccc';
+            
+            const label = document.createElement('p');
+            label.textContent = `icon-${size}x${size}.png`;
+            label.style.margin = '5px';
+            
+            const div = document.createElement('div');
+            div.style.display = 'inline-block';
+            div.style.textAlign = 'center';
+            div.appendChild(img);
+            div.appendChild(label);
+            
+            container.appendChild(div);
+        });
+    </script>
+</body>
+</html>

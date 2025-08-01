@@ -1,0 +1,48 @@
+{
+  "name": "cooper",
+  "version": "1.0.0",
+  "description": "人物情報管理PWAアプリ - 出会った人の情報を記録・管理",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve",
+    "serve": "npx serve",
+    "serve:python": "python -m http.server 8000",
+    "serve:firebase": "firebase serve --only hosting",
+    "deploy": "firebase deploy --only hosting",
+    "deploy:preview": "firebase hosting:channel:deploy preview --expires 7d",
+    "setup": "node -e \"require('fs').existsSync('js/firebase-config.js') || require('fs').copyFileSync('js/firebase-config.js.example', 'js/firebase-config.js'); console.log('Setup complete! Edit js/firebase-config.js with your Firebase config.')\"",
+    "login": "firebase login",
+    "init": "firebase init",
+    "test": "echo \"No tests configured yet\"",
+    "validate": "echo \"Validating HTML, CSS, and JavaScript files...\" && npx html-validator index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/cooper.git"
+  },
+  "keywords": [
+    "pwa",
+    "firebase",
+    "firestore",
+    "google-auth",
+    "contact-management",
+    "web-app"
+  ],
+  "author": "Cooper Development Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-username/cooper/issues"
+  },
+  "homepage": "https://coop-keeper.web.app",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions"
+  ]
+}
