@@ -427,6 +427,63 @@
             border-width: 2px;
             padding: 15px;
         }
+        
+        /* カレンダーボタンとSNSボタンの共通スタイル */
+        .calendar-btn,
+        .sns-btn {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            border: none;
+            border-radius: 50% !important;
+            background-color: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        
+        .calendar-btn:hover,
+        .sns-btn:hover {
+            background-color: var(--md-sys-color-primary-container);
+        }
+        
+        .calendar-btn:active,
+        .sns-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* カレンダーボタン専用スタイル */
+        .calendar-btn {
+            color: var(--md-sys-color-primary);
+        }
+        
+        .calendar-btn:hover {
+            color: var(--md-sys-color-on-primary-container);
+        }
+        
+        /* ダークテーマでのカレンダーボタン */
+        [data-theme="dark"] .calendar-btn {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+        }
+        
+        /* SNSボタンのアイコンサイズ */
+        .calendar-btn svg,
+        .sns-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        /* SNSボタンの色 */
+        .sns-btn.twitter { color: #1DA1F2; }
+        .sns-btn.instagram { color: #E4405F; }
+        .sns-btn.facebook { color: #1877F2; }
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
@@ -435,6 +492,35 @@
             display: flex;
             gap: 10px;
             margin-top: 30px;
+        }
+        
+        /* 固定フッター for 編集画面 */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 320px;
+            right: 0;
+            background-color: var(--md-sys-color-surface);
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+            padding: 16px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* モバイルでの固定フッター調整 */
+        @media (max-width: 768px) {
+            .fixed-footer {
+                left: 0;
+                right: 0;
+            }
+        }
+        
+        /* 編集フォームの下部スペース */
+        #personForm {
+            padding-bottom: 80px;
         }
         .btn {
             padding: 12px 24px;
@@ -858,6 +944,12 @@
         
         [data-theme="dark"] .form-card {
             background-color: var(--md-sys-color-surface);
+        }
+        
+        [data-theme="dark"] .fixed-footer {
+            background-color: var(--md-sys-color-surface);
+            border-top-color: var(--md-sys-color-outline-variant);
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
         }
     </style>
     
@@ -1331,6 +1423,12 @@
             
             const detailView = document.getElementById('detailView');
             
+            // 編集画面ではadd-buttonを非表示
+            const addButton = document.getElementById('addButton');
+            if (addButton) {
+                addButton.style.display = 'none';
+            }
+            
             // モバイルビューの場合はactiveクラスを追加
             if (window.innerWidth <= 768) {
                 detailView.classList.add('active');
@@ -1382,8 +1480,15 @@
                         <div class="two-column">
                             <div class="form-group">
                                 <label for="birthday">誕生日</label>
-                                <input type="text" id="birthday" name="birthday" autocomplete="off" 
-                                       value="${person.birthday || ''}" placeholder="1月1日 または 1990/1/1">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" id="birthday" name="birthday" autocomplete="off" 
+                                           value="${person.birthday || ''}" placeholder="1月1日 または 1990/1/1" style="flex: 1;">
+                                    <button type="button" id="addToCalendarBtn" class="calendar-btn" title="Googleカレンダーに追加" style="display: ${person.birthday ? 'flex' : 'none'};">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="relationship">関係性</label>
@@ -1450,8 +1555,50 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="sns">SNSアカウント</label>
-                            <input type="text" id="sns" name="sns" autocomplete="off" value="${person.sns || ''}" placeholder="@username, https://...">
+                            <label for="twitter">X（Twitter）</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="text" id="twitter" name="twitter" autocomplete="off" 
+                                       value="${person.twitter || ''}" placeholder="@username" style="flex: 1;">
+                                <button type="button" class="sns-btn twitter" onclick="openSNS('twitter')" 
+                                        style="display: ${person.twitter ? 'flex' : 'none'};" title="X（Twitter）で開く">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instagram">Instagram</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="text" id="instagram" name="instagram" autocomplete="off" 
+                                       value="${person.instagram || ''}" placeholder="@username" style="flex: 1;">
+                                <button type="button" class="sns-btn instagram" onclick="openSNS('instagram')" 
+                                        style="display: ${person.instagram ? 'flex' : 'none'};" title="Instagramで開く">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 0 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="facebook">Facebook</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="text" id="facebook" name="facebook" autocomplete="off" 
+                                       value="${person.facebook || ''}" placeholder="https://facebook.com/username" style="flex: 1;">
+                                <button type="button" class="sns-btn facebook" onclick="openSNS('facebook')" 
+                                        style="display: ${person.facebook ? 'flex' : 'none'};" title="Facebookで開く">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sns">その他SNS</label>
+                            <input type="text" id="sns" name="sns" autocomplete="off" value="${person.sns || ''}" placeholder="LinkedIn, TikTok, etc...">
                         </div>
                         
                         <div class="form-group">
@@ -1460,13 +1607,33 @@
                         </div>
                     </div>
                     
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-primary">保存</button>
-                        ${person.id ? `<button type="button" class="btn btn-danger" onclick="deletePerson('${person.id}')">削除</button>` : ''}
-                        <button type="button" class="btn btn-secondary" onclick="showEmptyState()">キャンセル</button>
-                    </div>
                 </form>
+                <div class="fixed-footer">
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('personForm').dispatchEvent(new Event('submit'))">保存</button>
+                    ${person.id ? `<button type="button" class="btn btn-danger" onclick="deletePerson('${person.id}')">削除</button>` : ''}
+                    <button type="button" class="btn btn-secondary" onclick="showEmptyState()">キャンセル</button>
+                </div>
             `;
+            
+            // カレンダーボタンとSNSボタンの初期表示状態を設定
+            setTimeout(() => {
+                const birthdayInput = document.getElementById('birthday');
+                const calendarBtn = document.getElementById('addToCalendarBtn');
+                if (birthdayInput && calendarBtn) {
+                    calendarBtn.style.display = birthdayInput.value ? 'flex' : 'none';
+                }
+                
+                // SNSボタンの表示状態を設定
+                ['twitter', 'instagram', 'facebook'].forEach(platform => {
+                    const input = document.getElementById(platform);
+                    if (input) {
+                        const btn = input.parentElement.querySelector('.sns-btn');
+                        if (btn) {
+                            btn.style.display = input.value ? 'flex' : 'none';
+                        }
+                    }
+                });
+            }, 0);
             
             document.getElementById('personForm').onsubmit = handleSubmit;
             
@@ -1498,6 +1665,9 @@
                 relationship: document.getElementById('relationship').value,
                 birthplace: document.getElementById('birthplace').value,
                 residence: document.getElementById('residence').value,
+                twitter: document.getElementById('twitter').value,
+                instagram: document.getElementById('instagram').value,
+                facebook: document.getElementById('facebook').value,
                 sns: document.getElementById('sns').value,
                 notes: document.getElementById('notes').value,
                 photo: document.getElementById('photoPreview').querySelector('img')?.src || ''
@@ -1532,6 +1702,12 @@
         function showEmptyState() {
             currentPersonId = null;
             const detailView = document.getElementById('detailView');
+            
+            // add-buttonを再表示
+            const addButton = document.getElementById('addButton');
+            if (addButton) {
+                addButton.style.display = '';
+            }
             
             // モバイルビューの場合はactiveクラスを削除
             if (window.innerWidth <= 768) {
@@ -1571,6 +1747,109 @@
         });
 
         document.getElementById('searchInput').addEventListener('input', renderPersonList);
+        
+        // SNSアカウントを開く機能
+        window.openSNS = function(platform) {
+            let url;
+            const value = document.getElementById(platform).value.trim();
+            
+            if (!value) return;
+            
+            switch(platform) {
+                case 'twitter':
+                    // @を除去してURLを構築
+                    const twitterHandle = value.replace('@', '');
+                    url = `https://twitter.com/${twitterHandle}`;
+                    break;
+                case 'instagram':
+                    // @を除去してURLを構築
+                    const instagramHandle = value.replace('@', '');
+                    url = `https://instagram.com/${instagramHandle}`;
+                    break;
+                case 'facebook':
+                    // すでにURLの場合はそのまま、そうでなければURL構築
+                    if (value.startsWith('http')) {
+                        url = value;
+                    } else {
+                        url = `https://facebook.com/${value}`;
+                    }
+                    break;
+            }
+            
+            if (url) {
+                window.open(url, '_blank');
+            }
+        };
+        
+        // Googleカレンダーに誕生日を追加する機能
+        function addBirthdayToGoogleCalendar() {
+            const birthday = document.getElementById('birthday').value;
+            const name = document.getElementById('name').value;
+            
+            if (!birthday || !name) {
+                alert('名前と誕生日を入力してください');
+                return;
+            }
+            
+            // 誕生日の解析（yyyy/mm/dd形式と mm月dd日形式の両方に対応）
+            let month, day, year = null;
+            
+            // yyyy/mm/dd または yyyy年mm月dd日 形式
+            const fullDateMatch = birthday.match(/(\d{4})[年\/](\d{1,2})[月\/](\d{1,2})/);
+            if (fullDateMatch) {
+                year = fullDateMatch[1];
+                month = fullDateMatch[2].padStart(2, '0');
+                day = fullDateMatch[3].padStart(2, '0');
+            } else {
+                // mm月dd日 または mm/dd 形式
+                const monthDayMatch = birthday.match(/(\d{1,2})[月\/](\d{1,2})/);
+                if (monthDayMatch) {
+                    month = monthDayMatch[1].padStart(2, '0');
+                    day = monthDayMatch[2].padStart(2, '0');
+                }
+            }
+            
+            if (!month || !day) {
+                alert('誕生日の形式が正しくありません。\n例: 1月1日、1990/1/1');
+                return;
+            }
+            
+            // 現在の年を使用（年が指定されていない場合）
+            const currentYear = new Date().getFullYear();
+            const startYear = year || currentYear;
+            
+            // イベントのタイトル
+            const title = `${name}${year ? ' ' + year : ''} 誕生日`;
+            
+            // 開始日と終了日（全日イベント）
+            const startDate = `${startYear}${month}${day}`;
+            const endDate = `${startYear}${month}${day}`;
+            
+            // 毎年繰り返すルール
+            const recurrence = 'RRULE:FREQ=YEARLY';
+            
+            // Googleカレンダーのイベント作成URLを生成
+            const params = new URLSearchParams({
+                action: 'TEMPLATE',
+                text: title,
+                dates: `${startDate}/${endDate}`,
+                recur: recurrence,
+                details: `${name}さんの誕生日${year ? `（${year}年生まれ）` : ''}`
+            });
+            
+            const googleCalendarUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
+            
+            // 新しいタブでGoogleカレンダーを開く
+            window.open(googleCalendarUrl, '_blank');
+        }
+        
+        // カレンダーボタンのクリックイベントを設定
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#addToCalendarBtn')) {
+                e.preventDefault();
+                addBirthdayToGoogleCalendar();
+            }
+        });
 
         // エクスポート機能
         function exportData() {
@@ -1673,10 +1952,26 @@
             // 誕生日のフォーマット補助
             if (e.target && e.target.id === 'birthday') {
                 const value = e.target.value;
+                const calendarBtn = document.getElementById('addToCalendarBtn');
+                
+                // カレンダーボタンの表示/非表示を切り替え
+                if (calendarBtn) {
+                    calendarBtn.style.display = value ? 'flex' : 'none';
+                }
                 
                 // 複数の形式をサポート
                 // 例: 1/1, 01/01, 1月1日, 1990/1/1, 1990年1月1日
                 // 入力をそのまま保持（ユーザーが好きな形式で入力できるように）
+            }
+            
+            // SNSフィールドの入力時にボタンの表示/非表示を切り替え
+            if (e.target && (e.target.id === 'twitter' || e.target.id === 'instagram' || e.target.id === 'facebook')) {
+                const value = e.target.value;
+                const btn = e.target.parentElement.querySelector('.sns-btn');
+                
+                if (btn) {
+                    btn.style.display = value ? 'flex' : 'none';
+                }
             }
         });
 
