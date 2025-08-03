@@ -1,0 +1,27 @@
+# Code Owners
+# このファイルは、誰がコードの特定の部分に責任を持つかを定義します。
+# プルリクエストがこれらのファイルを変更する場合、自動的にレビュアーとして割り当てられます。
+
+# デフォルトオーナー（すべてのファイル）
+* @your-github-username
+
+# JavaScript/フロントエンド
+*.js @your-github-username
+*.html @your-github-username
+*.css @your-github-username
+
+# Firebase設定
+/js/firebase-config.js* @your-github-username
+firebase.json @your-github-username
+.firebaserc @your-github-username
+
+# ドキュメント
+*.md @your-github-username
+/docs/ @your-github-username
+
+# GitHub Actions
+/.github/workflows/ @your-github-username
+
+# セキュリティ関連
+SECURITY.md @your-github-username
+/js/auth.js @your-github-username
