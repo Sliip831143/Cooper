@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cooper Icon Generator from Image</title>
+</head>
+<body>
+    <h2>Cooper App Icon Generator</h2>
+    <p>1. 下の「ファイルを選択」ボタンをクリックして、COOPERロゴ画像を選択してください。</p>
+    <p>2. 各サイズのアイコンが生成されたら、右クリック→「画像を保存」でiconsフォルダに保存してください。</p>
+    
+    <input type="file" id="fileInput" accept="image/*">
+    <br><br>
+    
+    <div id="icons"></div>
+    
+    <script>
+        const sizes = [16, 32, 72, 96, 128, 144, 152, 180, 192, 384, 512];
+        const container = document.getElementById('icons');
+        
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Clear previous icons
+                    container.innerHTML = '';
+                    
+                    sizes.forEach(size => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // アンチエイリアスを有効にして高品質な縮小
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        
+                        // 画像を描画
+                        ctx.drawImage(img, 0, 0, size, size);
+                        
+                        // 画像として表示
+                        const generatedImg = document.createElement('img');
+                        generatedImg.src = canvas.toDataURL('image/png');
+                        generatedImg.style.margin = '10px';
+                        generatedImg.style.border = '1px solid #ccc';
+                        generatedImg.style.imageRendering = 'auto';
+                        
+                        const label = document.createElement('p');
+                        label.textContent = `icon-${size}x${size}.png`;
+                        label.style.margin = '5px';
+                        
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = canvas.toDataURL('image/png');
+                        downloadLink.download = `icon-${size}x${size}.png`;
+                        downloadLink.textContent = 'ダウンロード';
+                        downloadLink.style.display = 'block';
+                        downloadLink.style.marginBottom = '10px';
+                        
+                        const div = document.createElement('div');
+                        div.style.display = 'inline-block';
+                        div.style.textAlign = 'center';
+                        div.appendChild(generatedImg);
+                        div.appendChild(label);
+                        div.appendChild(downloadLink);
+                        
+                        container.appendChild(div);
+                    });
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
