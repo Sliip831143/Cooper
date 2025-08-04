@@ -951,6 +951,73 @@
             border-top-color: var(--md-sys-color-outline-variant);
             box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
         }
+        
+        /* コンテキストメニュー */
+        .context-menu {
+            position: fixed;
+            background-color: var(--md-sys-color-surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 8px 0;
+            min-width: 160px;
+            z-index: 1100;
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        .context-menu.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            color: var(--md-sys-color-on-surface);
+            text-decoration: none;
+            gap: 12px;
+        }
+        
+        .context-menu-item:hover {
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        
+        .context-menu-item svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        .context-menu-item.danger {
+            color: var(--md-sys-color-error);
+        }
+        
+        .context-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1099;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.1); /* 半透明の背景を追加 */
+        }
+        
+        .context-menu-overlay.show {
+            display: block;
+        }
+        
+        /* 長押し時の視覚フィードバック */
+        .person-item.long-pressing {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
     </style>
     
     <!-- Favicon -->
@@ -1341,16 +1408,14 @@
                 return;
             }
             
-            if (confirm('この人物の情報を削除しますか？')) {
-                try {
-                    await deleteContact(user.uid, id);
-                    persons = persons.filter(p => p.id !== id);
-                    renderPersonList();
-                    showEmptyState();
-                } catch (error) {
-                    console.error('削除エラー:', error);
-                    alert('データの削除に失敗しました');
-                }
+            try {
+                await deleteContact(user.uid, id);
+                persons = persons.filter(p => p.id !== id);
+                renderPersonList();
+                showEmptyState();
+            } catch (error) {
+                console.error('削除エラー:', error);
+                alert('データの削除に失敗しました');
             }
         }
         
@@ -1363,7 +1428,7 @@
         function renderPersonList() {
             const searchQuery = document.getElementById('searchInput').value.toLowerCase();
             let filteredPersons = persons.filter(person => {
-                const searchText = `${person.name || ''} ${person.features || ''} ${person.hobbies || ''} ${person.notes || ''} ${person.meetingPlace || ''} ${person.birthplace || ''} ${person.residence || ''} ${person.birthday || ''} ${person.occupation || ''} ${person.sns || ''}`.toLowerCase();
+                const searchText = `${person.name || ''} ${person.features || ''} ${person.hobbies || ''} ${person.notes || ''} ${person.meetingPlace || ''} ${person.birthplace || ''} ${person.residence || ''} ${person.email || ''} ${person.birthday || ''} ${person.occupation || ''} ${person.sns || ''}`.toLowerCase();
                 return searchText.includes(searchQuery);
             });
 
@@ -1407,19 +1472,90 @@
                         <div class="person-info">${infoDisplay}</div>
                     </div>
                 `;
-                item.addEventListener('click', () => showPersonDetail(person.id));
-                item.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    showPersonDetail(person.id);
+                // クリックと長押しの処理
+                let pressTimer;
+                let isLongPress = false;
+                let startX, startY;
+                
+                const startPress = (e) => {
+                    isLongPress = false;
+                    item.classList.add('long-pressing');
+                    
+                    // タッチイベントまたはマウスイベントから座標を取得
+                    if (e.touches) {
+                        startX = e.touches[0].clientX;
+                        startY = e.touches[0].clientY;
+                    } else {
+                        startX = e.clientX;
+                        startY = e.clientY;
+                    }
+                    
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        item.classList.remove('long-pressing');
+                        showContextMenu(e, person);
+                    }, 500); // 500ms長押しでメニュー表示
+                };
+                
+                const endPress = (e) => {
+                    clearTimeout(pressTimer);
+                    item.classList.remove('long-pressing');
+                    
+                    if (!isLongPress) {
+                        e.preventDefault();
+                        showPersonDetail(person.id);
+                    }
+                };
+                
+                const cancelPress = () => {
+                    clearTimeout(pressTimer);
+                    item.classList.remove('long-pressing');
+                    isLongPress = false;
+                };
+                
+                // タッチデバイス用
+                item.addEventListener('touchstart', startPress);
+                item.addEventListener('touchend', endPress);
+                item.addEventListener('touchmove', (e) => {
+                    // 移動量が大きい場合は長押しをキャンセル
+                    if (e.touches) {
+                        const moveX = Math.abs(e.touches[0].clientX - startX);
+                        const moveY = Math.abs(e.touches[0].clientY - startY);
+                        if (moveX > 10 || moveY > 10) {
+                            cancelPress();
+                        }
+                    }
                 });
+                item.addEventListener('touchcancel', cancelPress);
+                
+                // マウス用（デスクトップ）
+                item.addEventListener('mousedown', startPress);
+                item.addEventListener('mouseup', endPress);
+                item.addEventListener('mouseleave', cancelPress);
+                
+                // 右クリックメニュー
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    showContextMenu(e, person);
+                });
+                
                 personList.appendChild(item);
             });
         }
 
-        function showPersonDetail(id) {
+        function showPersonDetail(id, fromHistory = false) {
+            // 開いているメニューをすべて閉じる
+            closeAllMenus();
+            
             const person = persons.find(p => p.id === id) || {};
             currentPersonId = id;
             isEditing = true;
+            
+            // 履歴管理: fromHistoryがfalseの場合（通常の遷移）のみ履歴を追加
+            if (!fromHistory) {
+                const state = { view: 'detail', personId: id };
+                history.pushState(state, '', '#person/' + (id || 'new'));
+            }
             
             const detailView = document.getElementById('detailView');
             
@@ -1555,6 +1691,11 @@
                         </div>
                         
                         <div class="form-group">
+                            <label for="email">メールアドレス</label>
+                            <input type="email" id="email" name="email" autocomplete="off" value="${person.email || ''}" placeholder="example@email.com">
+                        </div>
+                        
+                        <div class="form-group">
                             <label for="twitter">X（Twitter）</label>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <input type="text" id="twitter" name="twitter" autocomplete="off" 
@@ -1610,7 +1751,7 @@
                 </form>
                 <div class="fixed-footer">
                     <button type="button" class="btn btn-primary" onclick="document.getElementById('personForm').dispatchEvent(new Event('submit'))">保存</button>
-                    ${person.id ? `<button type="button" class="btn btn-danger" onclick="deletePerson('${person.id}')">削除</button>` : ''}
+                    ${person.id ? `<button type="button" class="btn btn-danger" onclick="if(confirm('この人物の情報を削除しますか？')) deletePerson('${person.id}')">削除</button>` : ''}
                     <button type="button" class="btn btn-secondary" onclick="showEmptyState()">キャンセル</button>
                 </div>
             `;
@@ -1665,6 +1806,7 @@
                 relationship: document.getElementById('relationship').value,
                 birthplace: document.getElementById('birthplace').value,
                 residence: document.getElementById('residence').value,
+                email: document.getElementById('email').value,
                 twitter: document.getElementById('twitter').value,
                 instagram: document.getElementById('instagram').value,
                 facebook: document.getElementById('facebook').value,
@@ -1699,8 +1841,15 @@
             }
         }
 
-        function showEmptyState() {
+        function showEmptyState(fromHistory = false) {
             currentPersonId = null;
+            isEditing = false;
+            
+            // 履歴管理: fromHistoryがfalseの場合（通常の遷移）のみ履歴を追加
+            if (!fromHistory) {
+                history.pushState({ view: 'list' }, '', '#');
+            }
+            
             const detailView = document.getElementById('detailView');
             
             // add-buttonを再表示
@@ -2171,6 +2320,12 @@
                 dataSubmenu.classList.remove('active');
             }
             
+            // プロフィールメニュー
+            const profileMenu = document.getElementById('profileMenu');
+            if (profileMenu) {
+                profileMenu.classList.remove('active');
+            }
+            
             // 展開状態をリセット
             document.querySelectorAll('.settings-item.expanded').forEach(item => {
                 item.classList.remove('expanded');
@@ -2200,6 +2355,14 @@
                 });
             }
             
+            // コンテキストメニュー
+            const contextMenu = document.getElementById('contextMenu');
+            const contextMenuOverlay = document.getElementById('contextMenuOverlay');
+            const isContextMenuClick = e.target.closest('#contextMenu');
+            
+            if (contextMenuOverlay && contextMenuOverlay.classList.contains('show') && !isContextMenuClick) {
+                hideContextMenu();
+            }
             
             // プロフィールメニュー
             const profileDropdown = e.target.closest('.profile-dropdown');
@@ -2314,9 +2477,93 @@
         window.setSortMode = setSortMode;
         window.deleteAllPersons = deleteAllPersons;
         
+        // コンテキストメニューの表示
+        function showContextMenu(e, person) {
+            e.preventDefault();
+            console.log('showContextMenu called with person:', person);
+            
+            const contextMenu = document.getElementById('contextMenu');
+            const overlay = document.getElementById('contextMenuOverlay');
+            
+            // 現在のターゲット人物を保存
+            contextMenu.dataset.personId = person.id;
+            console.log('設定されたpersonId:', person.id);
+            
+            // 座標を取得
+            let x, y;
+            if (e.touches) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+            
+            // メニューの位置を設定
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            
+            // 画面外にはみ出る場合の調整
+            setTimeout(() => {
+                const menuRect = contextMenu.getBoundingClientRect();
+                if (menuRect.right > window.innerWidth) {
+                    contextMenu.style.left = (window.innerWidth - menuRect.width - 10) + 'px';
+                }
+                if (menuRect.bottom > window.innerHeight) {
+                    contextMenu.style.top = (window.innerHeight - menuRect.height - 10) + 'px';
+                }
+            }, 0);
+            
+            // メニューを表示
+            overlay.classList.add('show');
+            contextMenu.classList.add('show');
+            
+            // バイブレーション（対応デバイスのみ、ユーザーインタラクションがある場合）
+            try {
+                if (navigator.vibrate && e.type !== 'contextmenu') {
+                    navigator.vibrate(50);
+                }
+            } catch (err) {
+                // 振動エラーは無視
+            }
+        }
+        
+        // コンテキストメニューを閉じる
+        function hideContextMenu() {
+            const contextMenu = document.getElementById('contextMenu');
+            const overlay = document.getElementById('contextMenuOverlay');
+            
+            overlay.classList.remove('show');
+            contextMenu.classList.remove('show');
+        }
+        
+        // エスケープキーでメニューを閉じる
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideContextMenu();
+            }
+        });
+        
         // 初期化
         initTheme();
         document.getElementById('sortDefault').classList.add('active');
+        
+        // ブラウザの戻る/進むボタンのハンドリング
+        window.addEventListener('popstate', (event) => {
+            if (event.state) {
+                if (event.state.view === 'detail' && event.state.personId) {
+                    showPersonDetail(event.state.personId, true);
+                } else if (event.state.view === 'list') {
+                    showEmptyState(true);
+                }
+            } else {
+                // stateがない場合は一覧画面に戻る
+                showEmptyState(true);
+            }
+        });
+        
+        // 初期状態を履歴に設定
+        history.replaceState({ view: 'list' }, '', '#');
         
         // Service Workerの登録
         if ('serviceWorker' in navigator) {
@@ -2326,6 +2573,73 @@
                     .catch(error => console.log('SW registration failed:', error));
             });
         }
+        
+        // DOMが完全に読み込まれてからコンテキストメニューのイベントリスナーを設定
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded - イベントリスナーを設定');
+            
+            const contextMenuEdit = document.getElementById('contextMenuEdit');
+            const contextMenuDelete = document.getElementById('contextMenuDelete');
+            
+            if (contextMenuEdit) {
+                contextMenuEdit.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const personId = document.getElementById('contextMenu').dataset.personId;
+                    console.log('編集ボタンクリック - personId:', personId);
+                    hideContextMenu();
+                    setTimeout(() => {
+                        showPersonDetail(personId);
+                    }, 100);
+                });
+                console.log('編集ボタンのイベントリスナーを設定しました');
+            } else {
+                console.error('contextMenuEdit要素が見つかりません');
+            }
+            
+            if (contextMenuDelete) {
+                contextMenuDelete.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const personId = document.getElementById('contextMenu').dataset.personId;
+                    console.log('削除ボタンクリック - personId:', personId);
+                    const person = persons.find(p => p.id === personId);
+                    console.log('削除対象:', person);
+                    hideContextMenu();
+                    
+                    if (person) {
+                        setTimeout(async () => {
+                            if (confirm(`「${person.name || '名前未設定'}」を削除しますか？`)) {
+                                await deletePerson(personId);
+                            }
+                        }, 100);
+                    } else {
+                        console.error('削除対象の人物が見つかりません');
+                    }
+                });
+                console.log('削除ボタンのイベントリスナーを設定しました');
+            } else {
+                console.error('contextMenuDelete要素が見つかりません');
+            }
+        });
     </script>
+    
+    <!-- コンテキストメニュー -->
+    <div class="context-menu-overlay" id="contextMenuOverlay">
+        <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item" id="contextMenuEdit">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+                編集
+            </div>
+            <div class="context-menu-item danger" id="contextMenuDelete">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                削除
+            </div>
+        </div>
+    </div>
 </body>
 </html>
