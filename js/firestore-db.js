@@ -13,7 +13,6 @@ async function saveContact(userId, contact) {
             ...contact,
             updatedAt: new Date().toISOString()
         });
-        console.log('連絡先を保存しました:', contact.id);
     } catch (error) {
         console.error('連絡先の保存エラー:', error);
         throw error;
@@ -63,7 +62,6 @@ async function updateContact(userId, contact) {
             ...contact,
             updatedAt: new Date().toISOString()
         });
-        console.log('連絡先を更新しました:', contact.id);
     } catch (error) {
         console.error('連絡先の更新エラー:', error);
         throw error;
@@ -75,7 +73,6 @@ async function deleteContact(userId, contactId) {
     try {
         const contactsRef = getUserCollection(userId);
         await contactsRef.doc(contactId).delete();
-        console.log('連絡先を削除しました:', contactId);
     } catch (error) {
         console.error('連絡先の削除エラー:', error);
         throw error;
@@ -95,7 +92,6 @@ async function deleteAllContacts(userId) {
         });
         
         await batch.commit();
-        console.log(`${querySnapshot.size}件の連絡先を削除しました`);
     } catch (error) {
         console.error('すべての連絡先の削除エラー:', error);
         throw error;
@@ -107,12 +103,10 @@ async function migrateFromLocalStorage(userId) {
     try {
         const localData = localStorage.getItem('contactsData');
         if (!localData) {
-            console.log('移行するデータがありません');
             return;
         }
 
         const contacts = JSON.parse(localData);
-        console.log(`${contacts.length}件の連絡先を移行します`);
 
         for (const contact of contacts) {
             await saveContact(userId, contact);
@@ -120,7 +114,6 @@ async function migrateFromLocalStorage(userId) {
 
         // 移行成功後、ローカルストレージをクリア
         localStorage.removeItem('contactsData');
-        console.log('データ移行が完了しました');
     } catch (error) {
         console.error('データ移行エラー:', error);
         throw error;

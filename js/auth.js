@@ -12,7 +12,6 @@ async function signInWithGoogle() {
         });
         const result = await auth.signInWithPopup(googleProvider);
         currentUser = result.user;
-        console.log('サインイン成功:', currentUser.displayName);
         return currentUser;
     } catch (error) {
         console.error('サインインエラー:', error);
@@ -25,7 +24,6 @@ async function signOutUser() {
     try {
         await auth.signOut();
         currentUser = null;
-        console.log('サインアウト成功');
     } catch (error) {
         console.error('サインアウトエラー:', error);
         throw error;
@@ -43,7 +41,6 @@ function initializeAuth(callback) {
     auth.getRedirectResult().then((result) => {
         if (result.user) {
             currentUser = result.user;
-            console.log('リダイレクト後のサインイン成功:', currentUser.displayName);
         }
     }).catch((error) => {
         console.error('リダイレクトエラー:', error);

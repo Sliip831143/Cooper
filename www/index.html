@@ -1012,14 +1012,11 @@
         let isEditing = false;
 
         // Firebase認証の初期化
-        console.log('Firebase初期化開始');
         
         // Firebase読み込み完了を待つ
         setTimeout(() => {
             if (typeof initializeAuth === 'function') {
-                console.log('initializeAuth関数が利用可能');
                 initializeAuth(async (user) => {
-                    console.log('認証状態変更:', user ? user.displayName : '未ログイン');
                     updateUIForAuthState(user);
                     
                     if (user) {
@@ -1510,7 +1507,6 @@
         // シンプルなクリックイベントのみを使用
         addButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('Add button clicked');
             
             // サインインチェック
             const user = getCurrentUser();
@@ -1973,8 +1969,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(registration => console.log('SW registered:', registration))
-                    .catch(error => console.log('SW registration failed:', error));
+                    .then(registration => {})
+                    .catch(error => {});
             });
         }
     </script>
