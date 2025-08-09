@@ -523,6 +523,8 @@
         .sns-btn.twitter { color: #1DA1F2; }
         .sns-btn.instagram { color: #E4405F; }
         .sns-btn.facebook { color: #1877F2; }
+        .sns-btn.phone { color: #4CAF50; }
+        .sns-btn.line { color: #00C300; }
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
@@ -537,16 +539,17 @@
         .fixed-footer {
             position: fixed;
             bottom: 0;
-            left: 320px;
+            left: 360px;
             right: 0;
             background-color: var(--md-sys-color-surface);
             border-top: 1px solid var(--md-sys-color-outline-variant);
-            padding: 16px;
+            padding: 16px 24px;
             display: flex;
             gap: 10px;
             justify-content: center;
             z-index: 1000;
             box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
         }
         
         /* モバイルでの固定フッター調整 */
@@ -982,6 +985,16 @@
             border-color: var(--md-sys-color-outline-variant);
         }
         
+        /* date inputのカレンダーアイコンの色を調整 */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.5);
+        }
+        
+        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.7);
+            opacity: 0.7;
+        }
+        
         [data-theme="dark"] .form-card {
             background-color: var(--md-sys-color-surface);
         }
@@ -1263,6 +1276,7 @@
     <script src="./js/firebase-config.js"></script>
     <script src="./js/auth.js"></script>
     <script src="./js/firestore-db.js"></script>
+    <script src="./js/image-utils.js"></script>
     
     <script>
 
@@ -1702,26 +1716,9 @@
                     
                     <div class="form-card">
                         <h3>基本情報</h3>
-                        <div class="two-column">
-                            <div class="form-group">
-                                <label for="name">名前</label>
-                                <input type="text" id="name" name="name" autocomplete="name" value="${person.name || ''}" placeholder="山田太郎">
-                            </div>
-                            <div class="form-group">
-                                <label for="age">年齢</label>
-                                <input type="text" id="age" name="age" list="ageList" autocomplete="off" 
-                                       value="${person.age || ''}" placeholder="25">
-                                <datalist id="ageList">
-                                    <option value="10代">10代</option>
-                                    <option value="20代">20代</option>
-                                    <option value="30代">30代</option>
-                                    <option value="40代">40代</option>
-                                    <option value="50代">50代</option>
-                                    <option value="60代">60代</option>
-                                    <option value="70代">70代</option>
-                                    <option value="80代">80代</option>
-                                </datalist>
-                            </div>
+                        <div class="form-group">
+                            <label for="name">名前</label>
+                            <input type="text" id="name" name="name" autocomplete="name" value="${person.name || ''}" placeholder="山田太郎">
                         </div>
                     
                         <div class="two-column">
@@ -1748,6 +1745,35 @@
                                     <option value="恋人" ${person.relationship === '恋人' ? 'selected' : ''}>恋人</option>
                                     <option value="その他" ${person.relationship === 'その他' ? 'selected' : ''}>その他</option>
                                 </select>
+                            </div>
+                        </div>
+                        
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="phone">電話番号</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="tel" id="phone" name="phone" autocomplete="off" 
+                                           value="${person.phone || ''}" placeholder="090-1234-5678" style="flex: 1;">
+                                    <button type="button" class="sns-btn phone" onclick="openPhone()" 
+                                            style="display: ${person.phone ? 'flex' : 'none'};" title="電話をかける">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="line">LINE</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" id="line" name="line" autocomplete="off" 
+                                           value="${person.line || ''}" placeholder="LINE ID" style="flex: 1;">
+                                    <button type="button" class="sns-btn line" onclick="openLINE()" 
+                                            style="display: ${person.line ? 'flex' : 'none'};" title="LINEで開く">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M19.23 9.04c0-3.52-3.96-6.38-8.84-6.38-4.88 0-8.84 2.86-8.84 6.38 0 3.15 3.15 5.79 7.4 6.29.29.06.68.19.78.43.09.22.06.56.03.78l-.12.76c-.04.22-.17 1.88 1.65 1.02 1.82-.85 9.82-5.78 9.82-5.78 1.35-1.16 2.12-2.29 2.12-3.5zm-11.65 2.38h-2.67c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h2.67c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.89v.25h1.89c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.89v.25h1.89c.15 0 .27.12.27.27v.51c0 .16-.12.28-.27.28zm1.75 0c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h.51c.15 0 .27.12.27.27v2.04c0 .15-.12.27-.27.27h-.51zm3.62 0h-.51c-.15 0-.27-.12-.27-.27v-1.27l-1.3 1.66s-.02.02-.03.03h-.01l-.03.02h-.01l-.02.01h-.02l-.03.01h-.52c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h.51c.15 0 .27.12.27.27v1.26l1.3-1.66.04-.04h.01l.02-.01h.01l.02-.01h.01l.02-.01h.54c.15 0 .27.12.27.27v2.04c0 .15-.12.27-.27.27zm2.75-1.53c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-2.15c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h2.15c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.37v.25h1.37c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.37v.25h1.37z"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1796,9 +1822,26 @@
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="residence">在住地</label>
-                            <input type="text" id="residence" name="residence" autocomplete="off" value="${person.residence || ''}" placeholder="神奈川県横浜市">
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="age">年齢</label>
+                                <input type="text" id="age" name="age" list="ageList" autocomplete="off" 
+                                       value="${person.age || ''}" placeholder="25">
+                                <datalist id="ageList">
+                                    <option value="10代">10代</option>
+                                    <option value="20代">20代</option>
+                                    <option value="30代">30代</option>
+                                    <option value="40代">40代</option>
+                                    <option value="50代">50代</option>
+                                    <option value="60代">60代</option>
+                                    <option value="70代">70代</option>
+                                    <option value="80代">80代</option>
+                                </datalist>
+                            </div>
+                            <div class="form-group">
+                                <label for="residence">在住地</label>
+                                <input type="text" id="residence" name="residence" autocomplete="off" value="${person.residence || ''}" placeholder="神奈川県横浜市">
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -1897,10 +1940,11 @@
                     if (!currentPersonId) {
                         // フォームを送信して保存（ピン留め状態を含む）
                         const formData = new FormData(document.getElementById('personForm'));
+                        const birthdayValue = formData.get('birthday');
                         const personData = {
                             name: formData.get('name'),
-                            age: formData.get('age'),
-                            birthday: formData.get('birthday'),
+                            age: calculateAgeFromBirthday(birthdayValue) || formData.get('age'),
+                            birthday: birthdayValue,
                             meetingPlace: formData.get('meetingPlace'),
                             firstMet: formData.get('firstMet'),
                             lastMet: formData.get('lastMet'),
@@ -1911,6 +1955,8 @@
                             birthplace: formData.get('birthplace'),
                             residence: formData.get('residence'),
                             email: formData.get('email'),
+                            phone: formData.get('phone'),
+                            line: formData.get('line'),
                             twitter: formData.get('twitter'),
                             instagram: formData.get('instagram'),
                             facebook: formData.get('facebook'),
@@ -1937,11 +1983,12 @@
                         if (person) {
                             // 現在のフォームの値を取得して、ピン留め状態だけを切り替え
                             const formData = new FormData(document.getElementById('personForm'));
+                            const birthdayValue = formData.get('birthday');
                             const updatedPerson = {
                                 id: currentPersonId,
                                 name: formData.get('name'),
-                                age: formData.get('age'),
-                                birthday: formData.get('birthday'),
+                                age: calculateAgeFromBirthday(birthdayValue) || formData.get('age'),
+                                birthday: birthdayValue,
                                 meetingPlace: formData.get('meetingPlace'),
                                 firstMet: formData.get('firstMet'),
                                 lastMet: formData.get('lastMet'),
@@ -1952,6 +1999,8 @@
                                 birthplace: formData.get('birthplace'),
                                 residence: formData.get('residence'),
                                 email: formData.get('email'),
+                                phone: formData.get('phone'),
+                                line: formData.get('line'),
                                 twitter: formData.get('twitter'),
                                 instagram: formData.get('instagram'),
                                 facebook: formData.get('facebook'),
@@ -2032,6 +2081,8 @@
                 birthplace: document.getElementById('birthplace').value,
                 residence: document.getElementById('residence').value,
                 email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                line: document.getElementById('line').value,
                 twitter: document.getElementById('twitter').value,
                 instagram: document.getElementById('instagram').value,
                 facebook: document.getElementById('facebook').value,
@@ -2056,14 +2107,17 @@
             }
         }
 
-        function handlePhotoUpload(event) {
+        async function handlePhotoUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('photoPreview').innerHTML = `<img src="${e.target.result}" alt="写真">`;
-                };
-                reader.readAsDataURL(file);
+                try {
+                    // 画像を圧縮
+                    const compressedDataUrl = await handleImageSelect(file);
+                    document.getElementById('photoPreview').innerHTML = `<img src="${compressedDataUrl}" alt="写真">`;
+                } catch (error) {
+                    console.error('画像の処理エラー:', error);
+                    alert('画像の処理に失敗しました: ' + error.message);
+                }
             }
         }
 
@@ -2123,6 +2177,23 @@
         document.getElementById('searchInput').addEventListener('input', renderPersonList);
         
         // SNSアカウントを開く機能
+        window.openPhone = function() {
+            const phoneNumber = document.getElementById('phone').value.trim();
+            if (!phoneNumber) return;
+            
+            // ハイフンやスペースを除去
+            const cleanNumber = phoneNumber.replace(/[-\s]/g, '');
+            window.location.href = `tel:${cleanNumber}`;
+        }
+        
+        window.openLINE = function() {
+            const lineId = document.getElementById('line').value.trim();
+            if (!lineId) return;
+            
+            // LINE URLスキームを使用
+            window.open(`https://line.me/ti/p/~${lineId}`, '_blank');
+        }
+        
         window.openSNS = function(platform) {
             let url;
             const value = document.getElementById(platform).value.trim();
@@ -2301,6 +2372,36 @@
         
         window.importData = importData;
 
+        // 誕生日から年齢を計算する関数
+        function calculateAgeFromBirthday(birthday) {
+            if (!birthday) return '';
+            
+            // yyyy/mm/dd形式の完全な日付をチェック
+            const fullDateMatch = birthday.match(/(\d{4})[年\/](\d{1,2})[月\/](\d{1,2})/);
+            if (fullDateMatch) {
+                const birthYear = parseInt(fullDateMatch[1]);
+                const birthMonth = parseInt(fullDateMatch[2]);
+                const birthDay = parseInt(fullDateMatch[3]);
+                
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const currentMonth = today.getMonth() + 1;
+                const currentDay = today.getDate();
+                
+                let age = currentYear - birthYear;
+                
+                // 誕生日が今年まだ来ていない場合は1歳引く
+                if (currentMonth < birthMonth || (currentMonth === birthMonth && currentDay < birthDay)) {
+                    age--;
+                }
+                
+                return age.toString();
+            }
+            
+            // 月日のみの場合は年齢を計算できない
+            return '';
+        }
+
         // 年齢入力の検証
         document.addEventListener('input', function(e) {
             if (e.target && e.target.id === 'age') {
@@ -2323,14 +2424,23 @@
                 }
             }
             
-            // 誕生日のフォーマット補助
+            // 誕生日のフォーマット補助と年齢自動計算
             if (e.target && e.target.id === 'birthday') {
                 const value = e.target.value;
                 const calendarBtn = document.getElementById('addToCalendarBtn');
+                const ageInput = document.getElementById('age');
                 
                 // カレンダーボタンの表示/非表示を切り替え
                 if (calendarBtn) {
                     calendarBtn.style.display = value ? 'flex' : 'none';
+                }
+                
+                // 年齢を自動計算して設定
+                if (ageInput) {
+                    const calculatedAge = calculateAgeFromBirthday(value);
+                    if (calculatedAge) {
+                        ageInput.value = calculatedAge;
+                    }
                 }
                 
                 // 複数の形式をサポート
@@ -2339,7 +2449,7 @@
             }
             
             // SNSフィールドの入力時にボタンの表示/非表示を切り替え
-            if (e.target && (e.target.id === 'twitter' || e.target.id === 'instagram' || e.target.id === 'facebook')) {
+            if (e.target && (e.target.id === 'twitter' || e.target.id === 'instagram' || e.target.id === 'facebook' || e.target.id === 'phone' || e.target.id === 'line')) {
                 const value = e.target.value;
                 const btn = e.target.parentElement.querySelector('.sns-btn');
                 

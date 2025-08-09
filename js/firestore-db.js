@@ -1,5 +1,35 @@
 // Firestoreデータベース操作 - CDN版を使用
 
+// 誕生日から年齢を計算する関数
+function calculateAgeFromBirthday(birthday) {
+    if (!birthday) return '';
+    
+    // yyyy/mm/dd形式の完全な日付をチェック
+    const fullDateMatch = birthday.match(/(\d{4})[年\/](\d{1,2})[月\/](\d{1,2})/);
+    if (fullDateMatch) {
+        const birthYear = parseInt(fullDateMatch[1]);
+        const birthMonth = parseInt(fullDateMatch[2]);
+        const birthDay = parseInt(fullDateMatch[3]);
+        
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        const currentDay = today.getDate();
+        
+        let age = currentYear - birthYear;
+        
+        // 誕生日が今年まだ来ていない場合は1歳引く
+        if (currentMonth < birthMonth || (currentMonth === birthMonth && currentDay < birthDay)) {
+            age--;
+        }
+        
+        return age.toString();
+    }
+    
+    // 月日のみの場合は年齢を計算できない
+    return '';
+}
+
 // ユーザーのデータコレクションを取得
 function getUserCollection(userId) {
     return db.collection('users').doc(userId).collection('contacts');
@@ -27,7 +57,15 @@ async function getAllContacts(userId) {
         
         const contacts = [];
         querySnapshot.forEach((doc) => {
-            contacts.push(doc.data());
+            const contact = doc.data();
+            // 誕生日から年齢を自動計算
+            if (contact.birthday) {
+                const calculatedAge = calculateAgeFromBirthday(contact.birthday);
+                if (calculatedAge) {
+                    contact.age = calculatedAge;
+                }
+            }
+            contacts.push(contact);
         });
         
         return contacts;
@@ -44,7 +82,15 @@ async function getContact(userId, contactId) {
         const docSnap = await contactsRef.doc(contactId).get();
         
         if (docSnap.exists) {
-            return docSnap.data();
+            const contact = docSnap.data();
+            // 誕生日から年齢を自動計算
+            if (contact.birthday) {
+                const calculatedAge = calculateAgeFromBirthday(contact.birthday);
+                if (calculatedAge) {
+                    contact.age = calculatedAge;
+                }
+            }
+            return contact;
         } else {
             return null;
         }
