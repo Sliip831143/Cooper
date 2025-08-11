@@ -1068,6 +1068,65 @@
             color: var(--md-sys-color-error);
         }
         
+        /* 全画面画像表示スタイル */
+        .image-fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            cursor: zoom-out;
+        }
+        
+        .image-fullscreen-overlay.active {
+            display: flex;
+        }
+        
+        .image-fullscreen-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            cursor: default;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+        
+        .fullscreen-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .fullscreen-close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .fullscreen-close-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* 編集画面の画像にカーソルスタイルを追加 */
+        #photoPreview img {
+            cursor: zoom-in;
+        }
+        
         .context-menu-overlay {
             position: fixed;
             top: 0;
@@ -2005,6 +2064,15 @@
                         }
                     }
                 });
+                
+                // 画像クリックイベントを設定
+                const photoPreview = document.getElementById('photoPreview');
+                if (photoPreview) {
+                    const img = photoPreview.querySelector('img');
+                    if (img) {
+                        img.onclick = () => showFullscreenImage(img.src);
+                    }
+                }
             }, 0);
             
             document.getElementById('personForm').onsubmit = handleSubmit;
@@ -2198,6 +2266,7 @@
                     const img = document.createElement('img');
                     img.src = compressedDataUrl;
                     img.alt = '写真';
+                    img.onclick = () => showFullscreenImage(compressedDataUrl);
                     photoPreview.appendChild(img);
                 } catch (error) {
                     console.error('画像の処理エラー:', error);
@@ -2982,7 +3051,76 @@
         // エスケープキーでメニューを閉じる
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                hideContextMenu();
+                // 全画面画像表示が開いている場合は、それを閉じる
+                const fullscreenOverlay = document.getElementById('imageFullscreenOverlay');
+                if (fullscreenOverlay && fullscreenOverlay.classList.contains('active')) {
+                    closeFullscreenImage();
+                } else {
+                    hideContextMenu();
+                }
+            }
+        });
+        
+        // 全画面画像表示関数
+        function showFullscreenImage(imageSrc) {
+            const overlay = document.getElementById('imageFullscreenOverlay');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            
+            if (overlay && fullscreenImage) {
+                fullscreenImage.src = imageSrc;
+                overlay.classList.add('active');
+                
+                // 履歴にプッシュ（戻るボタン対応）
+                const currentState = history.state || {};
+                history.pushState({ ...currentState, fullscreen: true }, '', '#fullscreen');
+            }
+        }
+        
+        function closeFullscreenImage() {
+            const overlay = document.getElementById('imageFullscreenOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                
+                // 履歴から全画面状態を削除
+                if (history.state && history.state.fullscreen) {
+                    history.back();
+                }
+            }
+        }
+        
+        // 全画面オーバーレイのクリックイベント
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('imageFullscreenOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', (e) => {
+                    // 画像自体をクリックした場合は閉じない
+                    if (e.target === overlay) {
+                        closeFullscreenImage();
+                    }
+                });
+            }
+            
+            // photoPreviewの画像クリックイベントを監視
+            const photoPreview = document.getElementById('photoPreview');
+            if (photoPreview) {
+                // MutationObserverで画像の追加を監視
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.tagName === 'IMG' && !node.onclick) {
+                                node.onclick = () => showFullscreenImage(node.src);
+                            }
+                        });
+                    });
+                });
+                
+                observer.observe(photoPreview, { childList: true });
+                
+                // 既存の画像にもイベントを設定
+                const existingImg = photoPreview.querySelector('img');
+                if (existingImg && !existingImg.onclick) {
+                    existingImg.onclick = () => showFullscreenImage(existingImg.src);
+                }
             }
         });
         
@@ -2992,6 +3130,12 @@
         
         // ブラウザの戻る/進むボタンのハンドリング
         window.addEventListener('popstate', (event) => {
+            // 全画面表示が開いている場合は閉じる
+            const fullscreenOverlay = document.getElementById('imageFullscreenOverlay');
+            if (fullscreenOverlay && fullscreenOverlay.classList.contains('active')) {
+                fullscreenOverlay.classList.remove('active');
+            }
+            
             if (event.state) {
                 if (event.state.view === 'detail' && event.state.personId) {
                     showPersonDetail(event.state.personId, true);
@@ -3100,6 +3244,16 @@
                 削除
             </div>
         </div>
+    </div>
+    
+    <!-- 全画面画像表示用のオーバーレイ -->
+    <div id="imageFullscreenOverlay" class="image-fullscreen-overlay">
+        <img id="fullscreenImage" src="" alt="拡大画像">
+        <button class="fullscreen-close-btn" onclick="closeFullscreenImage()">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+        </button>
     </div>
 </body>
 </html>
