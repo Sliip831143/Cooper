@@ -428,6 +428,23 @@
             padding: 15px;
         }
         
+        /* セレクトボックスのカスタマイズ - ネイティブ矢印を非表示にしてカスタム矢印を追加 */
+        .form-group select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath fill='%235f6368' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 10px 5px;
+        }
+        
+        /* ダークモード用の矢印色 */
+        [data-theme="dark"] .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath fill='%23C4C7C5' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+        }
+        
         /* ピンボタン */
         .pin-button {
             display: flex !important;
@@ -1272,10 +1289,18 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
+    <!-- 環境変数設定（env.jsはGitにコミットされません） -->
+    <script src="./env.js"></script>
+    
     <!-- Firebase設定 -->
     <script src="./js/firebase-config.js"></script>
     <script src="./js/auth.js"></script>
+    <script src="./js/crypto-utils.js"></script>
+    <script src="./js/secure-firestore-db.js"></script>
     <script src="./js/firestore-db.js"></script>
+    <script src="./js/encryption-migration.js"></script>
+    <script src="./js/key-rotation.js"></script>
+    <script src="./js/key-rotation-ui.js"></script>
     <script src="./js/image-utils.js"></script>
     
     <script>
@@ -1296,6 +1321,20 @@
                     if (user) {
                         // ユーザーがサインインしている場合
                         await loadUserData();
+                        
+                        // キーローテーションUIを初期化
+                        addKeyRotationSettingsUI();
+                        updateKeyRotationUI();
+                        
+                        // キーローテーション通知チェック
+                        const settings = keyRotationManager.getRotationSettings(user.uid);
+                        if (settings.lastRotation) {
+                            const daysSinceRotation = Math.floor((new Date() - new Date(settings.lastRotation)) / (1000 * 60 * 60 * 24));
+                            const daysRemaining = settings.interval - daysSinceRotation;
+                            if (rotationNotifier.shouldShowNotification(user.uid, daysSinceRotation, settings.interval)) {
+                                rotationNotifier.showRotationReminder(daysRemaining);
+                            }
+                        }
                     } else {
                         // ユーザーがサインアウトしている場合
                         persons = [];
@@ -1434,6 +1473,12 @@
             if (!user) return;
             
             try {
+                // 暗号化移行チェック
+                await checkAndMigrateEncryption();
+                
+                // キーローテーションチェック
+                await checkKeyRotationOnStartup(user.uid);
+                
                 // Firestoreからデータを取得
                 persons = await getAllContacts(user.uid);
                 renderPersonList();
@@ -1459,6 +1504,14 @@
 
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // XSS対策用のサニタイズ関数
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
         }
 
 
@@ -1539,13 +1592,22 @@
             const sortedUnpinnedPersons = sortPersons(unpinnedPersons);
 
             const personList = document.getElementById('personList');
-            personList.innerHTML = '';
+            // 安全にリストをクリア
+            while (personList.firstChild) {
+                personList.removeChild(personList.firstChild);
+            }
 
             // ピン留めされた人物がある場合はセクションを表示
             if (sortedPinnedPersons.length > 0) {
                 const pinnedSection = document.createElement('div');
                 pinnedSection.className = 'pinned-section';
-                pinnedSection.innerHTML = '<div class="section-header">ピン留め</div>';
+                
+                // 安全にヘッダーを作成
+                const sectionHeader = document.createElement('div');
+                sectionHeader.className = 'section-header';
+                sectionHeader.textContent = 'ピン留め';
+                pinnedSection.appendChild(sectionHeader);
+                
                 personList.appendChild(pinnedSection);
 
                 sortedPinnedPersons.forEach(person => {
@@ -1583,16 +1645,30 @@
                 const infoDisplay = infoItems.join(' | ');
                 
                 const avatarContent = person.photo 
-                    ? `<img src="${person.photo}" alt="${person.name || '写真'}">` 
+                    ? `<img src="${escapeHtml(person.photo)}" alt="${escapeHtml(person.name || '写真')}">` 
                     : '<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
                 
-                item.innerHTML = `
-                    <div class="person-avatar">${avatarContent}</div>
-                    <div class="person-details">
-                        <div class="person-name">${person.name || '名前未設定'}</div>
-                        <div class="person-info">${infoDisplay}</div>
-                    </div>
-                `;
+                // 安全にDOM要素を作成
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'person-avatar';
+                avatarDiv.innerHTML = avatarContent; // 画像URLはエスケープ済み
+                
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'person-details';
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'person-name';
+                nameDiv.textContent = person.name || '名前未設定';
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'person-info';
+                infoDiv.textContent = infoDisplay;
+                
+                detailsDiv.appendChild(nameDiv);
+                detailsDiv.appendChild(infoDiv);
+                
+                item.appendChild(avatarDiv);
+                item.appendChild(detailsDiv);
                 // クリックと長押しの処理
                 let pressTimer;
                 let isLongPress = false;
@@ -1769,8 +1845,9 @@
                                            value="${person.line || ''}" placeholder="LINE ID" style="flex: 1;">
                                     <button type="button" class="sns-btn line" onclick="openLINE()" 
                                             style="display: ${person.line ? 'flex' : 'none'};" title="LINEで開く">
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M19.23 9.04c0-3.52-3.96-6.38-8.84-6.38-4.88 0-8.84 2.86-8.84 6.38 0 3.15 3.15 5.79 7.4 6.29.29.06.68.19.78.43.09.22.06.56.03.78l-.12.76c-.04.22-.17 1.88 1.65 1.02 1.82-.85 9.82-5.78 9.82-5.78 1.35-1.16 2.12-2.29 2.12-3.5zm-11.65 2.38h-2.67c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h2.67c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.89v.25h1.89c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.89v.25h1.89c.15 0 .27.12.27.27v.51c0 .16-.12.28-.27.28zm1.75 0c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h.51c.15 0 .27.12.27.27v2.04c0 .15-.12.27-.27.27h-.51zm3.62 0h-.51c-.15 0-.27-.12-.27-.27v-1.27l-1.3 1.66s-.02.02-.03.03h-.01l-.03.02h-.01l-.02.01h-.02l-.03.01h-.52c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h.51c.15 0 .27.12.27.27v1.26l1.3-1.66.04-.04h.01l.02-.01h.01l.02-.01h.01l.02-.01h.54c.15 0 .27.12.27.27v2.04c0 .15-.12.27-.27.27zm2.75-1.53c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-2.15c-.15 0-.27-.12-.27-.27v-2.04c0-.15.12-.27.27-.27h2.15c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.37v.25h1.37c.15 0 .27.12.27.27v.51c0 .15-.12.27-.27.27h-1.37v.25h1.37z"/>
+                                        <svg viewBox="0 0 48 48">
+                                            <path fill="#00c300" d="M12.5,42h23c3.59,0,6.5-2.91,6.5-6.5v-23C42,8.91,39.09,6,35.5,6h-23C8.91,6,6,8.91,6,12.5v23C6,39.09,8.91,42,12.5,42z"></path>
+                                            <path fill="#fff" d="M37.113,22.417c0-5.865-5.88-10.637-13.107-10.637s-13.108,4.772-13.108,10.637c0,5.258,4.663,9.662,10.962,10.495c0.427,0.092,1.008,0.282,1.155,0.646c0.132,0.331,0.086,0.85,0.042,1.185c0,0-0.153,0.925-0.187,1.122c-0.057,0.331-0.263,1.296,1.135,0.707c1.399-0.589,7.548-4.445,10.298-7.611h-0.001C36.203,26.879,37.113,24.764,37.113,22.417z M18.875,25.907h-2.604c-0.379,0-0.687-0.308-0.687-0.688V20.01c0-0.379,0.308-0.687,0.687-0.687c0.379,0,0.687,0.308,0.687,0.687v4.521h1.917c0.379,0,0.687,0.308,0.687,0.687C19.562,25.598,19.254,25.907,18.875,25.907z M21.568,25.219c0,0.379-0.308,0.688-0.687,0.688s-0.687-0.308-0.687-0.688V20.01c0-0.379,0.308-0.687,0.687-0.687s0.687,0.308,0.687,0.687V25.219z M27.838,25.219c0,0.297-0.188,0.559-0.47,0.652c-0.071,0.024-0.145,0.036-0.218,0.036c-0.215,0-0.42-0.103-0.549-0.275l-2.669-3.635v3.222c0,0.379-0.308,0.688-0.688,0.688c-0.379,0-0.688-0.308-0.688-0.688V20.01c0-0.296,0.189-0.558,0.47-0.652c0.071-0.024,0.144-0.035,0.218-0.035c0.214,0,0.42,0.103,0.549,0.275l2.67,3.635V20.01c0-0.379,0.309-0.687,0.688-0.687c0.379,0,0.687,0.308,0.687,0.687V25.219z M32.052,21.927c0.379,0,0.688,0.308,0.688,0.688c0,0.379-0.308,0.687-0.688,0.687h-1.917v1.23h1.917c0.379,0,0.688,0.308,0.688,0.687c0,0.379-0.309,0.688-0.688,0.688h-2.604c-0.378,0-0.687-0.308-0.687-0.688v-2.603c0-0.001,0-0.001,0-0.001c0,0,0-0.001,0-0.001v-2.601c0-0.001,0-0.001,0-0.002c0-0.379,0.308-0.687,0.687-0.687h2.604c0.379,0,0.688,0.308,0.688,0.687s-0.308,0.687-0.688,0.687h-1.917v1.23H32.052z"></path>
                                         </svg>
                                     </button>
                                 </div>
@@ -2113,7 +2190,15 @@
                 try {
                     // 画像を圧縮
                     const compressedDataUrl = await handleImageSelect(file);
-                    document.getElementById('photoPreview').innerHTML = `<img src="${compressedDataUrl}" alt="写真">`;
+                    const photoPreview = document.getElementById('photoPreview');
+                    // 安全にプレビューを更新
+                    while (photoPreview.firstChild) {
+                        photoPreview.removeChild(photoPreview.firstChild);
+                    }
+                    const img = document.createElement('img');
+                    img.src = compressedDataUrl;
+                    img.alt = '写真';
+                    photoPreview.appendChild(img);
                 } catch (error) {
                     console.error('画像の処理エラー:', error);
                     alert('画像の処理に失敗しました: ' + error.message);
@@ -2143,14 +2228,26 @@
                 detailView.classList.remove('active');
             }
             
-            detailView.innerHTML = `
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                    <p>人物を選択するか、新規追加してください</p>
-                </div>
+            // 安全に空の状態を表示
+            while (detailView.firstChild) {
+                detailView.removeChild(detailView.firstChild);
+            }
+            
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            
+            // SVGアイコンは安全なので innerHTML を使用可能
+            emptyState.innerHTML = `
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
             `;
+            
+            const p = document.createElement('p');
+            p.textContent = '人物を選択するか、新規追加してください';
+            emptyState.appendChild(p);
+            
+            detailView.appendChild(emptyState);
             renderPersonList();
         }
 
@@ -2825,6 +2922,7 @@
             // ピン留め状態に応じてテキストを変更
             const pinText = document.getElementById('pinText');
             const pinItem = document.getElementById('contextMenuPin');
+            // SVGパスは安全なのでそのまま使用可能
             if (person.isPinned) {
                 pinText.textContent = 'ピン留め解除';
                 pinItem.querySelector('svg').innerHTML = '<path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z M10,4H14V11.17L16,13.17V14H8V13.17L10,11.17V4Z"/>';
