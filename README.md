@@ -37,7 +37,11 @@ Cooper/
 ├── js/                    # JavaScriptファイル
 │   ├── firebase-config.js # Firebase初期化設定
 │   ├── auth.js           # 認証機能
-│   ├── firestore-db.js   # Firestore操作
+│   ├── secure-firestore-db.js # Firestore操作（暗号化対応）
+│   ├── crypto-utils.js   # 暗号化ユーティリティ
+│   ├── encryption-migration.js # 暗号化マイグレーション
+│   ├── key-rotation.js   # 暗号化キーローテーション
+│   ├── key-rotation-ui.js # キーローテーションUI
 │   ├── data-storage.js   # ローカルストレージ操作
 │   └── image-utils.js    # 画像処理ユーティリティ
 │
@@ -62,10 +66,21 @@ Cooper/
 - サインイン/サインアウト機能
 - ユーザー状態管理
 
-### `js/firestore-db.js`
-- Firestoreとのデータ同期
+### `js/secure-firestore-db.js`
+- Firestoreとのデータ同期（暗号化対応）
 - CRUD操作（作成・読取・更新・削除）
 - リアルタイムデータ同期
+- 機密情報の自動暗号化・復号化
+
+### `js/crypto-utils.js`
+- Web Crypto APIを使用した暗号化
+- AES-GCM 256ビット暗号化
+- 機密フィールドの選択的暗号化
+
+### `js/key-rotation.js` & `js/key-rotation-ui.js`
+- 暗号化キーの定期的な更新
+- キーローテーション管理UI
+- セキュリティ強化機能
 
 ### `js/data-storage.js`
 - ローカルストレージへのデータ保存
@@ -100,6 +115,8 @@ Cooper/
 - ✅ SNSアカウント連携（Twitter/Instagram/Facebook）
 - ✅ Googleカレンダー誕生日連携
 - ✅ ピン留め機能
+- ✅ 個人情報の暗号化保護
+- ✅ 暗号化キーローテーション
 
 ## セットアップ手順
 
@@ -125,27 +142,28 @@ firebase login
 
 ### ローカル開発サーバーの起動
 
+#### npm scriptsを使用（推奨）
+```bash
+npm start
+# または
+npm run serve
+```
+
 #### Python 3の場合
 ```bash
+npm run serve:python
+# または直接
 python -m http.server 8000
-```
-
-#### Python 2.7の場合
-```bash
-python -m SimpleHTTPServer 8000
-```
-
-#### Node.jsの場合
-```bash
-npx serve
 ```
 
 #### Firebase CLIの場合
 ```bash
+npm run serve:firebase
+# または直接
 firebase serve --only hosting
 ```
 
-ブラウザで `http://localhost:8000` にアクセス
+ブラウザで `http://localhost:3000` (npm start) または `http://localhost:8000` (Python) にアクセス
 
 ### ファイル更新時の手順
 
@@ -226,6 +244,30 @@ const firebaseConfig = {
 - **詳細情報**：職業、出身地、年齢（誕生日から自動計算）、在住地、メールアドレス、SNS（Twitter/Instagram/Facebook）、その他SNS、メモ
 - **写真**：プロフィール画像（自動圧縮）
 
+### 暗号化される項目
+以下の機密情報は、AES-GCM 256ビット暗号化でFirestoreに保存されます：
+- 📱 **電話番号** (phone)
+- 📧 **メールアドレス** (email)
+- 💬 **LINE ID** (line)
+- 🐦 **Twitter** (twitter)
+- 📷 **Instagram** (instagram)
+- 📘 **Facebook** (facebook)
+- 🌐 **その他SNS** (sns)
+- 🏠 **居住地** (residence)
+- 📝 **メモ** (notes)
+- 👤 **容姿の特徴** (features)
+
+### 暗号化されない項目
+以下の項目は、検索・表示のために平文で保存されます：
+- 👤 **名前** (name)
+- 🎂 **誕生日** (birthday)
+- 🔢 **年齢** (age) - 誕生日から自動計算
+- 🤝 **関係** (relationship)
+- 📍 **ピン留め状態** (isPinned)
+- 🖼️ **写真** (photo) - Base64形式
+- 🆔 **ID** (id)
+- 🕐 **更新日時** (updatedAt)
+
 ## トラブルシューティング
 
 ### プロフィール画像が表示されない
@@ -242,10 +284,27 @@ const firebaseConfig = {
 - Firebase Consoleで承認済みドメインを確認
 - ブラウザのサードパーティCookieが有効か確認
 
+## セキュリティとプライバシー
+
+### 暗号化技術
+- **アルゴリズム**: AES-GCM 256ビット（認証付き暗号化）
+- **キー導出**: PBKDF2（100,000回のイテレーション）
+- **実装**: Web Crypto API（ブラウザネイティブ）
+- **キーローテーション**: 定期的な暗号化キー更新機能
+
+### セキュリティ機能
+- ✅ エンドツーエンド暗号化（機密情報のみ）
+- ✅ ユーザーごとの独立した暗号化キー
+- ✅ Firebase Authentication による認証
+- ✅ Firestore セキュリティルールによるアクセス制御
+- ✅ HTTPS通信の強制
+- ✅ XSS対策（サニタイゼーション実装）
+
 ## 注意事項
 - Firebase設定ファイル（`js/firebase-config.js`）は公開リポジトリにコミットしないでください
 - 無料枠の制限があるため、大量のデータ保存には注意してください
-- 個人情報を扱うため、適切なセキュリティ対策を実施してください
+- 暗号化キーは各ユーザーのブラウザに保存されます（紛失にご注意ください）
+- 定期的なキーローテーションを推奨します（設定メニューから実行可能）
 
 ## 今後の機能追加案
 - [ ] プッシュ通知
@@ -263,4 +322,4 @@ const firebaseConfig = {
 Cooper Development Team
 
 ---
-最終更新: 2025年1月
+最終更新: 2025年8月12日

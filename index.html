@@ -1199,15 +1199,63 @@
         [data-theme="dark"] .pinned-section .person-item:hover {
             background-color: rgba(var(--md-sys-color-primary-rgb), 0.16);
         }
+        /* ローディングオーバーレイ */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--md-sys-color-background);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--md-sys-color-outline);
+            border-top-color: var(--md-sys-color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* アプリコンテナは初期状態で非表示 */
+        .app-container.initializing {
+            visibility: hidden;
+        }
     </style>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
-    <div class="app-container">
+    <!-- ローディングオーバーレイ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">読み込み中...</div>
+    </div>
+    <div class="app-container initializing" id="appContainer">
         <div class="header">
             <h1>Cooper</h1>
             <div class="header-actions">
@@ -1356,7 +1404,7 @@
     <script src="./js/auth.js"></script>
     <script src="./js/crypto-utils.js"></script>
     <script src="./js/secure-firestore-db.js"></script>
-    <script src="./js/firestore-db.js"></script>
+    <!-- <script src="./js/firestore-db.js"></script> 古い実装、secure-firestore-db.jsに置き換え済み -->
     <script src="./js/encryption-migration.js"></script>
     <script src="./js/key-rotation.js"></script>
     <script src="./js/key-rotation-ui.js"></script>
@@ -1369,6 +1417,24 @@
         let isEditing = false;
 
         // Firebase認証の初期化
+        
+        // ローディング表示制御
+        function hideLoadingOverlay() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const appContainer = document.getElementById('appContainer');
+            
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+                // アニメーション完了後に完全に削除
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 300);
+            }
+            
+            if (appContainer) {
+                appContainer.classList.remove('initializing');
+            }
+        }
         
         // Firebase読み込み完了を待つ
         setTimeout(async () => {
@@ -1400,16 +1466,17 @@
                         renderPersonList();
                         showEmptyState();
                     }
+                    
+                    // 認証状態が確定したらローディングを非表示
+                    hideLoadingOverlay();
                 });
             } else {
                 console.error('initializeAuth関数が見つかりません');
-                // 緊急時：初期状態のUIを表示
+                // 緊急時：初期状態のUIを表示してローディングを非表示
                 updateUIForAuthState(null);
+                hideLoadingOverlay();
             }
         }, 1000);
-        
-        // 初期UI状態を設定（Firebase読み込み前）
-        updateUIForAuthState(null);
 
         // サインイン処理
         window.handleSignIn = async function() {
