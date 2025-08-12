@@ -8,17 +8,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Progressive Web App (PWA) サポート
-- オフライン機能（Service Worker）
-- カスタムアイコン
-- Bree Serifフォントをロゴに適用
+- 🔐 **セキュリティ機能の大幅強化**
+  - AES-GCM 256ビット暗号化による個人情報保護
+  - クライアントサイド暗号化の実装（機密フィールドの自動暗号化）
+  - 暗号化キーローテーション機能
+  - XSS（クロスサイトスクリプティング）対策の実装
+  - セキュリティ設定用のサブメニュー階層
+  - Cooper専用セキュリティペルソナ（Frontend Sub Agent）の作成
+- 🎨 **UI/UX改善**
+  - キーローテーションUIのダークモード対応
+  - ローディング画面の実装（暗号化処理中の表示）
+  - 画像全画面表示機能
+  - セレクトボックスの矢印とLINEアイコンのデザイン修正
+- 📱 **PWA機能**
+  - Progressive Web App (PWA) サポート
+  - オフライン機能（Service Worker）
+  - カスタムアイコン
+  - Bree Serifフォントをロゴに適用
 
 ### Changed
 - APK形式からウェブアプリケーションへ完全移行
 - Google認証をウェブ専用に最適化
+- Firebaseセキュリティルールの強化
+- 個人情報の保存方法を暗号化対応に変更
+
+### Security
+- Firebase API キーの露出問題を修正
+- 個人情報（電話番号、メール、SNS情報等）の暗号化保存
+- XSS脆弱性の修正（innerHTML使用箇所のサニタイゼーション）
+- PBKDF2によるセキュアなキー導出（100,000回のイテレーション）
 
 ### Removed
 - Capacitor関連のコードとAndroidビルド設定
+- 平文での個人情報保存機能
 
 ## [1.0.0] - 2024-XX-XX
 

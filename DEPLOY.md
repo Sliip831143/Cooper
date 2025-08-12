@@ -41,6 +41,16 @@ firebase deploy --only hosting
 - https://coop-keeper.web.app
 - https://coop-keeper.firebaseapp.com
 
+### 6. セキュリティチェックリスト
+デプロイ前に以下を確認してください：
+- [ ] Firebase APIキーが適切に設定されている
+- [ ] Firestore Security Rulesが適用されている
+- [ ] HTTPSが有効になっている
+- [ ] 認証済みドメインリストが更新されている
+- [ ] 暗号化機能が正常に動作している
+- [ ] XSS対策が有効になっている
+- [ ] セキュリティヘッダーが設定されている
+
 ## その他のホスティングオプション
 
 ### GitHub Pages
@@ -56,9 +66,17 @@ firebase deploy --only hosting
 4. デプロイ後、カスタムドメインをFirebase Authenticationの承認済みドメインに追加
 
 ## 注意事項
+
+### セキュリティ関連
 - Google認証を使用するため、HTTPSでのホスティングが必須です
+- Firebase設定ファイル（`js/firebase-config.js`）に本番用のAPIキーを設定してください
+- Firestore Security Rulesを必ず設定してください（`firestore.rules`ファイル参照）
+- 暗号化機能が有効になっているため、初回アクセス時に暗号化キーが自動生成されます
+
+### 開発環境
 - ローカル開発時は `http://localhost` または `http://127.0.0.1` を使用してください
 - カスタムドメインを使用する場合は、必ずFirebase ConsoleのAuthentication設定に追加してください
+- セキュリティヘッダーの設定を確認してください（`firebase.json`のheadersセクション）
 
 ## ローカルでのテスト
 ```bash
