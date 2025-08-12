@@ -2,48 +2,21 @@
 // 設定画面にキーローテーションの管理機能を追加
 
 function addKeyRotationSettingsUI() {
-    // 設定メニューにキーローテーション項目を追加
-    const settingsMenu = document.getElementById('settingsMenu');
-    if (!settingsMenu) return;
-
-    // キーローテーション設定セクションを作成
-    const rotationSection = document.createElement('div');
-    rotationSection.className = 'settings-section';
-    rotationSection.id = 'keyRotationSection';
-    rotationSection.innerHTML = `
-        <h3 style="margin: 20px 0 10px 0; font-size: 16px; color: #333;">
-            🔐 暗号化キー管理
-        </h3>
-        <div id="rotationSettingsContent"></div>
-    `;
-
-    // 設定メニューの最後に追加
-    const deleteAllSection = settingsMenu.querySelector('div:last-child');
-    if (deleteAllSection && deleteAllSection.parentNode === settingsMenu) {
-        settingsMenu.insertBefore(rotationSection, deleteAllSection);
-    } else {
-        // 最後の要素が見つからない場合は末尾に追加
-        settingsMenu.appendChild(rotationSection);
-    }
-
-    // 設定内容を更新
-    updateKeyRotationUI();
+    // キーローテーション設定は初期化時に作成済みなので、何もしない
+    // updateKeyRotationUI() で内容を更新するのみ
 }
 
 // キーローテーションUIを更新
 function updateKeyRotationUI() {
     const user = getCurrentUser();
-    if (!user) {
-        // ログインしていない場合は表示しない
-        const rotationSection = document.getElementById('keyRotationSection');
-        if (rotationSection) {
-            rotationSection.style.display = 'none';
-        }
-        return;
-    }
-
     const contentDiv = document.getElementById('rotationSettingsContent');
     if (!contentDiv) return;
+    
+    if (!user) {
+        // ログインしていない場合は空にする
+        contentDiv.innerHTML = '';
+        return;
+    }
 
     const settings = keyRotationManager.getRotationSettings(user.uid);
     const lastRotationDate = settings.lastRotation ? new Date(settings.lastRotation) : null;
@@ -58,12 +31,12 @@ function updateKeyRotationUI() {
         : '正常';
 
     contentDiv.innerHTML = `
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+        <div style="background: var(--md-sys-color-surface-container-low); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: bold;">ステータス</span>
+                <span style="font-weight: bold; color: var(--md-sys-color-on-surface);">ステータス</span>
                 <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>
             </div>
-            <div style="font-size: 14px; color: #666;">
+            <div style="font-size: 14px; color: var(--md-sys-color-on-surface-variant);">
                 <div style="margin-bottom: 5px;">
                     最終更新: ${lastRotationDate ? lastRotationDate.toLocaleDateString('ja-JP') : '未設定'}
                     ${daysSinceRotation > 0 ? `（${daysSinceRotation}日前）` : ''}
@@ -75,9 +48,27 @@ function updateKeyRotationUI() {
             </div>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-size: 14px;">更新間隔の設定</label>
-            <select id="rotationIntervalSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <div style="margin-bottom: 15px; padding: 0 15px;">
+            <label style="display: block; margin-bottom: 5px; font-size: 14px; color: var(--md-sys-color-on-surface-variant);">更新間隔の設定</label>
+            <select id="rotationIntervalSelect" class="form-select" style="
+                width: 100%;
+                padding: 16px;
+                padding-right: 40px;
+                border: 1px solid var(--md-sys-color-outline-variant);
+                border-radius: var(--md-sys-shape-corner-small);
+                font-size: 16px;
+                background-color: var(--md-sys-color-surface);
+                color: var(--md-sys-color-on-surface);
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%225%22 viewBox=%220 0 10 5%22%3E%3Cpath fill=%22%235f6368%22 d=%22M0 0l5 5 5-5z%22/%3E%3C/svg%3E');
+                background-repeat: no-repeat;
+                background-position: right 16px center;
+                background-size: 10px 5px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            " onfocus="this.style.borderColor='var(--md-sys-color-primary)'; this.style.borderWidth='2px'; this.style.padding='15px'; this.style.paddingRight='39px';" onblur="this.style.borderColor='var(--md-sys-color-outline-variant)'; this.style.borderWidth='1px'; this.style.padding='16px'; this.style.paddingRight='40px';">
                 <option value="30" ${settings.interval === 30 ? 'selected' : ''}>30日（高セキュリティ）</option>
                 <option value="60" ${settings.interval === 60 ? 'selected' : ''}>60日</option>
                 <option value="90" ${settings.interval === 90 ? 'selected' : ''}>90日（推奨）</option>
@@ -86,24 +77,16 @@ function updateKeyRotationUI() {
             </select>
         </div>
 
-        <button onclick="manualKeyRotation()" style="
-            width: 100%;
-            padding: 10px;
-            background: #1D9BF0;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 10px;
-        ">
-            今すぐキーを更新
-        </button>
+        <div style="padding: 0 15px; margin-bottom: 15px;">
+            <button onclick="manualKeyRotation()" class="btn btn-primary" style="width: 100%;">
+                今すぐキーを更新
+            </button>
+        </div>
 
         ${settings.history.length > 0 ? `
             <details style="margin-top: 15px;">
-                <summary style="cursor: pointer; font-size: 14px; color: #666;">更新履歴</summary>
-                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                <summary style="cursor: pointer; font-size: 14px; color: var(--md-sys-color-on-surface-variant);">更新履歴</summary>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--md-sys-color-on-surface-variant);">
                     ${settings.history.slice(-5).reverse().map(h => `
                         <div style="margin-bottom: 5px;">
                             ${new Date(h.date).toLocaleDateString('ja-JP')} - 
@@ -126,11 +109,6 @@ function updateKeyRotationUI() {
         });
     }
 
-    // セクションを表示
-    const rotationSection = document.getElementById('keyRotationSection');
-    if (rotationSection) {
-        rotationSection.style.display = 'block';
-    }
 }
 
 // 手動キーローテーション

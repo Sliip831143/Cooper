@@ -445,6 +445,11 @@
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath fill='%23C4C7C5' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
         }
         
+        /* キーローテーションのセレクトボックスにもダークモード対応 */
+        [data-theme="dark"] .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath fill='%23C4C7C5' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E") !important;
+        }
+        
         /* ピンボタン */
         .pin-button {
             display: flex !important;
@@ -824,17 +829,23 @@
         /* サブメニュー */
         .submenu {
             position: absolute;
-            top: 0;
-            left: calc(100% + 8px);
             background-color: var(--md-sys-color-surface);
             border-radius: var(--md-sys-shape-corner-medium);
             box-shadow: var(--md-sys-elevation-2);
             min-width: 160px;
             opacity: 0;
             visibility: hidden;
-            transform: translateX(-10px);
             transition: all 0.2s ease;
             z-index: 1002;
+        }
+        
+        /* PC表示では親メニューの左下に重ねて表示 */
+        @media (min-width: 769px) {
+            .submenu {
+                top: 2rem;
+                left: 1rem;
+                transform: translateY(-10px);
+            }
         }
         
         /* モバイル表示でのサブメニュー位置調整 */
@@ -866,8 +877,25 @@
         .submenu.active {
             opacity: 1;
             visibility: visible;
-            transform: translateX(0);
         }
+        
+        /* PC表示でのアニメーション */
+        @media (min-width: 769px) {
+            .submenu.active {
+                transform: translateY(0);
+            }
+        }
+        
+        /* モバイル表示でのアニメーション */
+        @media (max-width: 768px) {
+            .submenu {
+                transform: translateX(-10px);
+            }
+            .submenu.active {
+                transform: translateX(0);
+            }
+        }
+        
         
         .submenu-item {
             display: flex;
@@ -1342,6 +1370,20 @@
                                     </svg>
                                     <span>インポート</span>
                                 </button>
+                            </div>
+                        </div>
+                        <div class="settings-item has-submenu" onclick="toggleSecuritySubmenu(event)">
+                            <div class="settings-item-content">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                                </svg>
+                                <span>セキュリティ</span>
+                            </div>
+                            <svg class="submenu-arrow" viewBox="0 0 24 24" width="20" height="20">
+                                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                            </svg>
+                            <div class="submenu" id="securitySubmenu">
+                                <div id="rotationSettingsContent"></div>
                             </div>
                         </div>
                         <div class="settings-divider"></div>
@@ -2825,16 +2867,27 @@
             themeItem.classList.toggle('expanded');
             submenu.classList.toggle('active');
             
-            // モバイル表示の場合、サブメニューの位置を調整
-            if (window.innerWidth <= 768 && submenu.classList.contains('active')) {
-                const rect = themeItem.getBoundingClientRect();
-                const submenuRect = submenu.getBoundingClientRect();
-                
-                // 画面の右端からはみ出る場合は位置を調整
-                if (rect.right + submenuRect.width > window.innerWidth) {
-                    submenu.style.left = 'auto';
-                    submenu.style.right = '0';
-                }
+            // PC表示でのみサブメニューの位置を確認して画面外にはみ出る場合は調整
+            if (window.innerWidth > 768 && submenu.classList.contains('active')) {
+                setTimeout(() => {
+                    const rect = submenu.getBoundingClientRect();
+                    // 画面の右端からはみ出る場合
+                    if (rect.right > window.innerWidth - 16) {
+                        submenu.style.left = 'auto';
+                        submenu.style.right = '1rem';
+                    }
+                    // 画面の下端からはみ出る場合
+                    if (rect.bottom > window.innerHeight - 16) {
+                        submenu.style.top = 'auto';
+                        submenu.style.bottom = '2rem';
+                    }
+                }, 10);
+            } else if (!submenu.classList.contains('active')) {
+                // リセット
+                submenu.style.left = '';
+                submenu.style.right = '';
+                submenu.style.top = '';
+                submenu.style.bottom = '';
             }
         }
         
@@ -2857,16 +2910,79 @@
             dataItem.classList.toggle('expanded');
             submenu.classList.toggle('active');
             
-            // モバイル表示の場合、サブメニューの位置を調整
-            if (window.innerWidth <= 768 && submenu.classList.contains('active')) {
-                const rect = dataItem.getBoundingClientRect();
-                const submenuRect = submenu.getBoundingClientRect();
-                
-                // 画面の右端からはみ出る場合は位置を調整
-                if (rect.right + submenuRect.width > window.innerWidth) {
-                    submenu.style.left = 'auto';
-                    submenu.style.right = '0';
+            // PC表示でのみサブメニューの位置を確認して画面外にはみ出る場合は調整
+            if (window.innerWidth > 768 && submenu.classList.contains('active')) {
+                setTimeout(() => {
+                    const rect = submenu.getBoundingClientRect();
+                    // 画面の右端からはみ出る場合
+                    if (rect.right > window.innerWidth - 16) {
+                        submenu.style.left = 'auto';
+                        submenu.style.right = '1rem';
+                    }
+                    // 画面の下端からはみ出る場合
+                    if (rect.bottom > window.innerHeight - 16) {
+                        submenu.style.top = 'auto';
+                        submenu.style.bottom = '2rem';
+                    }
+                }, 10);
+            } else if (!submenu.classList.contains('active')) {
+                // リセット
+                submenu.style.left = '';
+                submenu.style.right = '';
+                submenu.style.top = '';
+                submenu.style.bottom = '';
+            }
+        }
+        
+        // セキュリティサブメニューの表示/非表示を切り替え
+        function toggleSecuritySubmenu(event) {
+            event.stopPropagation();
+            const securityItem = event.currentTarget;
+            const submenu = document.getElementById('securitySubmenu');
+            
+            // 他のサブメニューを閉じる
+            const themeSubmenu = document.getElementById('themeSubmenu');
+            const themeItem = document.querySelector('.settings-item.has-submenu:nth-child(1)');
+            if (themeSubmenu && themeSubmenu.classList.contains('active')) {
+                themeSubmenu.classList.remove('active');
+                if (themeItem) {
+                    themeItem.classList.remove('expanded');
                 }
+            }
+            
+            const dataSubmenu = document.getElementById('dataSubmenu');
+            const dataItem = document.querySelector('.settings-item.has-submenu:nth-child(2)');
+            if (dataSubmenu && dataSubmenu.classList.contains('active')) {
+                dataSubmenu.classList.remove('active');
+                if (dataItem) {
+                    dataItem.classList.remove('expanded');
+                }
+            }
+            
+            securityItem.classList.toggle('expanded');
+            submenu.classList.toggle('active');
+            
+            // PC表示でのみサブメニューの位置を確認して画面外にはみ出る場合は調整
+            if (window.innerWidth > 768 && submenu.classList.contains('active')) {
+                setTimeout(() => {
+                    const rect = submenu.getBoundingClientRect();
+                    // 画面の右端からはみ出る場合
+                    if (rect.right > window.innerWidth - 16) {
+                        submenu.style.left = 'auto';
+                        submenu.style.right = '1rem';
+                    }
+                    // 画面の下端からはみ出る場合
+                    if (rect.bottom > window.innerHeight - 16) {
+                        submenu.style.top = 'auto';
+                        submenu.style.bottom = '2rem';
+                    }
+                }, 10);
+            } else if (!submenu.classList.contains('active')) {
+                // リセット
+                submenu.style.left = '';
+                submenu.style.right = '';
+                submenu.style.top = '';
+                submenu.style.bottom = '';
             }
         }
         
@@ -2881,11 +2997,15 @@
             // サブメニュー
             const themeSubmenu = document.getElementById('themeSubmenu');
             const dataSubmenu = document.getElementById('dataSubmenu');
+            const securitySubmenu = document.getElementById('securitySubmenu');
             if (themeSubmenu) {
                 themeSubmenu.classList.remove('active');
             }
             if (dataSubmenu) {
                 dataSubmenu.classList.remove('active');
+            }
+            if (securitySubmenu) {
+                securitySubmenu.classList.remove('active');
             }
             
             // プロフィールメニュー
@@ -2907,6 +3027,7 @@
             const settingsMenu = document.getElementById('settingsMenu');
             const themeSubmenu = document.getElementById('themeSubmenu');
             const dataSubmenu = document.getElementById('dataSubmenu');
+            const securitySubmenu = document.getElementById('securitySubmenu');
             
             if (!settingsContainer && settingsMenu.classList.contains('active')) {
                 settingsMenu.classList.remove('active');
@@ -2916,6 +3037,9 @@
                 }
                 if (dataSubmenu) {
                     dataSubmenu.classList.remove('active');
+                }
+                if (securitySubmenu) {
+                    securitySubmenu.classList.remove('active');
                 }
                 // 展開状態をリセット
                 document.querySelectorAll('.settings-item.expanded').forEach(item => {
@@ -3041,6 +3165,7 @@
         window.toggleSettingsMenu = toggleSettingsMenu;
         window.toggleThemeSubmenu = toggleThemeSubmenu;
         window.toggleDataSubmenu = toggleDataSubmenu;
+        window.toggleSecuritySubmenu = toggleSecuritySubmenu;
         window.closeAllMenus = closeAllMenus;
         window.setSortMode = setSortMode;
         window.deleteAllPersons = deleteAllPersons;
