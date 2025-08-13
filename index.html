@@ -835,7 +835,7 @@
             min-width: 160px;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.2s ease;
+            transition: opacity 0.2s ease, transform 0.2s ease;
             z-index: 1002;
         }
         
@@ -859,6 +859,11 @@
                 transform: none;
             }
             
+            .submenu:not(.active) {
+                z-index: -1;
+                transition-delay: 0s;
+            }
+            
             .settings-item.has-submenu {
                 position: static;
             }
@@ -877,6 +882,11 @@
         .submenu.active {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
+        }
+        
+        .submenu:not(.active) {
+            pointer-events: none;
         }
         
         /* PC表示でのアニメーション */
@@ -893,6 +903,10 @@
             }
             .submenu.active {
                 transform: translateX(0);
+            }
+            /* セキュリティサブメニュー専用の修正 */
+            #securitySubmenu:not(.active) {
+                display: none !important;
             }
         }
         
@@ -2864,6 +2878,15 @@
                 }
             }
             
+            const securitySubmenu = document.getElementById('securitySubmenu');
+            const securityItem = securitySubmenu?.closest('.settings-item');
+            if (securitySubmenu && securitySubmenu.classList.contains('active')) {
+                securitySubmenu.classList.remove('active');
+                if (securityItem) {
+                    securityItem.classList.remove('expanded');
+                }
+            }
+            
             themeItem.classList.toggle('expanded');
             submenu.classList.toggle('active');
             
@@ -2907,6 +2930,15 @@
                 }
             }
             
+            const securitySubmenu = document.getElementById('securitySubmenu');
+            const securityItem = securitySubmenu?.closest('.settings-item');
+            if (securitySubmenu && securitySubmenu.classList.contains('active')) {
+                securitySubmenu.classList.remove('active');
+                if (securityItem) {
+                    securityItem.classList.remove('expanded');
+                }
+            }
+            
             dataItem.classList.toggle('expanded');
             submenu.classList.toggle('active');
             
@@ -2942,7 +2974,7 @@
             
             // 他のサブメニューを閉じる
             const themeSubmenu = document.getElementById('themeSubmenu');
-            const themeItem = document.querySelector('.settings-item.has-submenu:nth-child(1)');
+            const themeItem = themeSubmenu?.closest('.settings-item');
             if (themeSubmenu && themeSubmenu.classList.contains('active')) {
                 themeSubmenu.classList.remove('active');
                 if (themeItem) {
@@ -2951,7 +2983,7 @@
             }
             
             const dataSubmenu = document.getElementById('dataSubmenu');
-            const dataItem = document.querySelector('.settings-item.has-submenu:nth-child(2)');
+            const dataItem = dataSubmenu?.closest('.settings-item');
             if (dataSubmenu && dataSubmenu.classList.contains('active')) {
                 dataSubmenu.classList.remove('active');
                 if (dataItem) {
@@ -2961,6 +2993,17 @@
             
             securityItem.classList.toggle('expanded');
             submenu.classList.toggle('active');
+            
+            // モバイル表示でセキュリティサブメニューの表示制御を追加
+            if (window.innerWidth <= 768) {
+                if (submenu.classList.contains('active')) {
+                    submenu.style.display = 'block';
+                } else {
+                    setTimeout(() => {
+                        submenu.style.display = '';
+                    }, 200); // トランジション完了後に非表示
+                }
+            }
             
             // PC表示でのみサブメニューの位置を確認して画面外にはみ出る場合は調整
             if (window.innerWidth > 768 && submenu.classList.contains('active')) {
