@@ -1,8 +1,8 @@
 # Node modules
 node_modules/
 
-# Firebase config (セキュリティのため)
-js/firebase-config.js
+# Environment configuration (セキュリティのため)
+env.js
 
 # OS files
 .DS_Store

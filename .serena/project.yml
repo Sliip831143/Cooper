@@ -1,0 +1,44 @@
+name: Cooper
+description: "人物管理アプリケーション - 名前、誕生日、SNSアカウント、電話番号などの個人情報を管理"
+project_type: webapp
+primary_language: typescript
+framework: react
+context: desktop-app
+
+include_patterns:
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
+  - "src/**/*.js"
+  - "src/**/*.jsx"
+  - "public/**/*.html"
+  - "*.json"
+  - "*.md"
+
+exclude_patterns:
+  - "node_modules/**"
+  - "dist/**"
+  - "build/**"
+  - ".firebase/**"
+  - "*.log"
+  - ".git/**"
+  - ".vscode/**"
+  - ".idea/**"
+
+tools:
+  - search_code
+  - search_identifiers
+  - view_code_structure
+  - view_code_item
+  - edit_code
+  - create_file
+
+settings:
+  enable_linting: true
+  enable_type_checking: true
+  enable_testing: true
+  code_style: prettier
+  
+security_settings:
+  enable_security_scanning: true
+  protect_sensitive_data: true
+  encryption_required: true

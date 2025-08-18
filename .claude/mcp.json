@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "py",
+      "args": ["-m", "uv", "tool", "run", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"],
+      "env": {
+        "SERENA_WORKSPACE": "C:\\Users\\t-oku\\file\\learn\\Cooper"
+      }
+    }
+  }
+}
