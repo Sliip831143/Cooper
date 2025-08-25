@@ -31,7 +31,7 @@ function renderPersonDetailSafe(person, detailView) {
     pinBtn.id = 'pinButton';
     pinBtn.className = `pin-button ${person.isPinned ? 'pinned' : ''}`;
     pinBtn.title = person.isPinned ? 'ピン留め解除' : 'ピン留め';
-    pinBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17 3v7c0 .55-.45 1-1 1h-3v1.82c.65.34 1.1.97 1.15 1.68H17c.55 0 1 .45 1 1s-.45 1-1 1h-2.95c-.22 1.25-1.35 2.19-2.68 2.19S9.15 17.75 8.93 16.5H7c-.55 0-1-.45-1-1s.45-1 1-1h2.93c.05-.71.5-1.34 1.15-1.68V12H8c-.55 0-1-.45-1-1V3c0-.55.45-1 1-1h8c.55 0 1 .45 1 1zm-2 1H9v6h6V4z"/></svg>';
+    pinBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z"/></svg>';
     header.appendChild(pinBtn);
     
     detailView.appendChild(header);

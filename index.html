@@ -1110,6 +1110,12 @@
             color: var(--md-sys-color-error);
         }
         
+        .context-menu-divider {
+            height: 1px;
+            background-color: var(--md-sys-color-outline-variant);
+            margin: 8px;
+        }
+        
         /* 全画面画像表示スタイル */
         .image-fullscreen-overlay {
             position: fixed;
@@ -1500,6 +1506,17 @@
                     updateUIForAuthState(user);
                     
                     if (user) {
+                        // アカウント切り替え処理中かチェック
+                        const isAccountSwitching = sessionStorage.getItem('isAccountSwitching') === 'true';
+                        const previousUserEmail = sessionStorage.getItem('previousUserEmail');
+                        
+                        if (isAccountSwitching && previousUserEmail && user.email !== previousUserEmail) {
+                            // 異なるアカウントでログインした場合、データをクリア
+                            persons = [];
+                            sessionStorage.removeItem('isAccountSwitching');
+                            sessionStorage.removeItem('previousUserEmail');
+                        }
+                        
                         // ユーザーがサインインしている場合
                         await loadUserData();
                         
@@ -1580,22 +1597,66 @@
                 // 現在のユーザー情報を保存
                 const currentUserEmail = getCurrentUser()?.email;
                 
-                // 新しいアカウントでサインインを試みる
-                const newUser = await signInWithGoogle();
+                // モバイルデバイスの検出
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 
-                // 新しいユーザーが選択され、かつ現在のユーザーと異なる場合のみデータをクリア
-                if (newUser && newUser.email !== currentUserEmail) {
-                    // 異なるアカウントでログインした場合、ローカルデータをクリア
-                    persons = [];
-                    renderPersonList();
-                    showEmptyState();
+                if (isMobile) {
+                    // モバイルの場合は従来通りサインアウトしてからサインイン
+                    // アカウント切り替え前のユーザー情報をsessionStorageに保存
+                    if (currentUserEmail) {
+                        sessionStorage.setItem('previousUserEmail', currentUserEmail);
+                        sessionStorage.setItem('isAccountSwitching', 'true');
+                    }
+                    
+                    // サインアウト
+                    await signOutUser();
+                    
+                    // 新しいアカウントでサインイン（リダイレクト）
+                    await signInWithGoogle();
+                    return;
+                } else {
+                    // デスクトップの場合はGoogleProviderで別アカウントを強制的に選択させる
+                    try {
+                        // 別のアカウントを選択できるようにプロンプトを設定
+                        googleProvider.setCustomParameters({
+                            prompt: 'select_account'
+                        });
+                        
+                        // 新しいアカウントでサインインを試みる（現在のセッションは維持）
+                        const result = await auth.signInWithPopup(googleProvider);
+                        const newUser = result.user;
+                        
+                        if (newUser && newUser.email !== currentUserEmail) {
+                            // 異なるアカウントが選択された場合
+                            // ローカルデータをクリア
+                            persons = [];
+                            renderPersonList();
+                            showEmptyState();
+                            
+                            // 新しいユーザーでデータを読み込む
+                            await loadUserData();
+                        }
+                        // 同じアカウントが選択された場合は何もしない
+                    } catch (error) {
+                        // ポップアップがキャンセルされた場合
+                        if (error.code === 'auth/popup-closed-by-user' || 
+                            error.code === 'auth/cancelled-popup-request' ||
+                            error.code === 'auth/popup-blocked') {
+                            // 何もしない（現在のログイン状態を維持）
+                            return;
+                        }
+                        // アカウントが既に使用されているエラーの場合
+                        if (error.code === 'auth/account-exists-with-different-credential') {
+                            // 既存のアカウントでサインインを促す
+                            alert('このメールアドレスは既に別の認証方法で使用されています。');
+                            return;
+                        }
+                        throw error;
+                    }
                 }
             } catch (error) {
-                // ユーザーがキャンセルした場合やエラーが発生した場合
-                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    console.error('アカウント切り替えエラー:', error);
-                    alert('アカウントの切り替えに失敗しました');
-                }
+                console.error('アカウント切り替えエラー:', error);
+                alert('アカウントの切り替えに失敗しました');
             }
         }
 
@@ -1855,9 +1916,11 @@
                 let pressTimer;
                 let isLongPress = false;
                 let startX, startY;
+                let hasMoved = false;
                 
                 const startPress = (e) => {
                     isLongPress = false;
+                    hasMoved = false;
                     item.classList.add('long-pressing');
                     
                     // タッチイベントまたはマウスイベントから座標を取得
@@ -1880,7 +1943,7 @@
                     clearTimeout(pressTimer);
                     item.classList.remove('long-pressing');
                     
-                    if (!isLongPress) {
+                    if (!isLongPress && !hasMoved) {
                         e.preventDefault();
                         showPersonDetail(person.id);
                     }
@@ -1890,6 +1953,7 @@
                     clearTimeout(pressTimer);
                     item.classList.remove('long-pressing');
                     isLongPress = false;
+                    hasMoved = true;
                 };
                 
                 // タッチデバイス用
@@ -1953,7 +2017,7 @@
                     <h2 style="flex: 1;">${person.name || '新規人物'}</h2>
                     <button type="button" id="pinButton" class="pin-button ${person.isPinned ? 'pinned' : ''}" title="${person.isPinned ? 'ピン留め解除' : 'ピン留め'}">
                         <svg viewBox="0 0 24 24">
-                            <path d="M17 3v7c0 .55-.45 1-1 1h-3v1.82c.65.34 1.1.97 1.15 1.68H17c.55 0 1 .45 1 1s-.45 1-1 1h-2.95c-.22 1.25-1.35 2.19-2.68 2.19S9.15 17.75 8.93 16.5H7c-.55 0-1-.45-1-1s.45-1 1-1h2.93c.05-.71.5-1.34 1.15-1.68V12H8c-.55 0-1-.45-1-1V3c0-.55.45-1 1-1h8c.55 0 1 .45 1 1zm-2 1H9v6h6V4z"/>
+                            <path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z"/>
                         </svg>
                     </button>
                 </div>
@@ -3400,6 +3464,7 @@
             
             const contextMenuPin = document.getElementById('contextMenuPin');
             const contextMenuEdit = document.getElementById('contextMenuEdit');
+            const contextMenuDuplicate = document.getElementById('contextMenuDuplicate');
             const contextMenuDelete = document.getElementById('contextMenuDelete');
             
             if (contextMenuPin) {
@@ -3431,6 +3496,37 @@
                 });
             } else {
                 console.error('contextMenuEdit要素が見つかりません');
+            }
+            
+            if (contextMenuDuplicate) {
+                contextMenuDuplicate.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const personId = document.getElementById('contextMenu').dataset.personId;
+                    const person = persons.find(p => p.id === personId);
+                    hideContextMenu();
+                    
+                    if (person) {
+                        // 複製処理
+                        const duplicatedPerson = {
+                            ...person,
+                            id: generateId(),
+                            name: person.name ? `${person.name} (コピー)` : '名前未設定 (コピー)',
+                            isPinned: false,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+                        await savePerson(duplicatedPerson);
+                        renderPersonList();
+                        
+                        // 複製した人物の詳細を表示
+                        setTimeout(() => {
+                            showPersonDetail(duplicatedPerson.id);
+                        }, 100);
+                    }
+                });
+            } else {
+                console.error('contextMenuDuplicate要素が見つかりません');
             }
             
             if (contextMenuDelete) {
@@ -3472,6 +3568,13 @@
                 </svg>
                 編集
             </div>
+            <div class="context-menu-item" id="contextMenuDuplicate">
+                <svg viewBox="0 0 24 24">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                </svg>
+                複製
+            </div>
+            <div class="context-menu-divider"></div>
             <div class="context-menu-item danger" id="contextMenuDelete">
                 <svg viewBox="0 0 24 24">
                     <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>

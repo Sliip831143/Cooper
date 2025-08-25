@@ -6,13 +6,24 @@ let currentUser = null;
 // Google認証でサインイン
 async function signInWithGoogle() {
     try {
-        // ブラウザではポップアップを使用
         googleProvider.setCustomParameters({
             prompt: 'select_account'
         });
-        const result = await auth.signInWithPopup(googleProvider);
-        currentUser = result.user;
-        return currentUser;
+        
+        // モバイルデバイスの検出
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // モバイルではリダイレクトを使用
+            await auth.signInWithRedirect(googleProvider);
+            // リダイレクト後は自動的にgetRedirectResultで処理される
+            return null;
+        } else {
+            // デスクトップではポップアップを使用
+            const result = await auth.signInWithPopup(googleProvider);
+            currentUser = result.user;
+            return currentUser;
+        }
     } catch (error) {
         console.error('サインインエラー:', error);
         throw error;
@@ -41,9 +52,25 @@ function initializeAuth(callback) {
     auth.getRedirectResult().then((result) => {
         if (result.user) {
             currentUser = result.user;
+            
+            // アカウント切り替え処理中かチェック
+            const isAccountSwitching = sessionStorage.getItem('isAccountSwitching') === 'true';
+            const previousUserEmail = sessionStorage.getItem('previousUserEmail');
+            
+            if (isAccountSwitching && previousUserEmail && result.user.email !== previousUserEmail) {
+                // 異なるアカウントでログインした場合の処理
+                // この処理はindex.htmlのonAuthStateChangedで行われる
+                sessionStorage.removeItem('isAccountSwitching');
+                sessionStorage.removeItem('previousUserEmail');
+            }
         }
     }).catch((error) => {
-        console.error('リダイレクトエラー:', error);
+        // sessionStorageエラーを回避
+        if (error.code === 'auth/missing-or-invalid-nonce') {
+            console.log('リダイレクト認証を再試行してください');
+        } else {
+            console.error('リダイレクトエラー:', error);
+        }
     });
     
     return auth.onAuthStateChanged((user) => {
